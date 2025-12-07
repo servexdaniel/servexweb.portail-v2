@@ -4,8 +4,23 @@ use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 use Livewire\Volt\Volt;
 
+/*
+Route::redirect('/', app()->getLocale());
+
+Route::group([
+    'prefix' => '{language}/',
+    'middleware' => \App\Http\Middleware\EnsureValidTenantDomain::class
+
+], function () {
+    require __DIR__.'/auth.php';
+    require __DIR__.'/servex/contact.php';
+    require __DIR__.'/user.php';
+});
+*/
+
 Route::get('/', function () {
     return view('welcome');
+    //require __DIR__ . '/servex/welcome.php';
 })->name('home');
 
 Route::view('dashboard', 'dashboard')

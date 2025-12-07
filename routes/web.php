@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 use Livewire\Volt\Volt;
 
-
+/*
 Route::redirect('/', app()->getLocale());
 
 Route::group([
@@ -45,8 +45,9 @@ Route::group([
             ->name('two-factor.show');
     });
 });
+*/
 
-/*
+
 Route::get('/', function () {
     return view('welcome');
     //require __DIR__ . '/servex/welcome.php';
@@ -74,4 +75,51 @@ Route::middleware(['auth'])->group(function () {
         )
         ->name('two-factor.show');
 });
-*/
+
+
+
+// 2. NOUVEAU : Toutes les routes de l'application dans un groupe avec {language} + middleware tenant
+Route::group([
+    'prefix' => '{language}',
+    'where' => ['language' => 'fr|en|es|de|it|pt'], // langues autorisées
+    'middleware' => [
+        \App\Http\Middleware\EnsureValidTenantDomain::class,  // votre vérification tenant
+        \App\Http\Middleware\SetLanguage::class,              // définir la langue
+    ],
+], function () {
+
+    Route::middleware('tenants')->group(function () {
+        //require __DIR__ . '/auth.php';
+        //require __DIR__ . '/servex/contact.php';
+        //require __DIR__ . '/user.php';
+
+
+        // → On recrée ici TOUTES les routes principales (mais sans les redéfinir 2 fois)
+        Route::get('/', function () {
+            return view('welcome');
+        })->name('home'); // le name reste le même
+
+        Route::view('dashboard', 'dashboard')
+            ->middleware(['auth', 'verified'])
+            ->name('dashboard');
+
+        Route::middleware(['auth'])->group(function () {
+            Route::redirect('settings', 'settings/profile');
+
+            Volt::route('settings/profile', 'settings.profile')->name('profile.edit');
+            Volt::route('settings/password', 'settings.password')->name('user-password.edit');
+            Volt::route('settings/appearance', 'settings.appearance')->name('appearance.edit');
+
+            Volt::route('settings/two-factor', 'settings.two-factor')
+                ->middleware(
+                    when(
+                        Features::canManageTwoFactorAuthentication()
+                            && Features::optionEnabled(Features::twoFactorAuthentication(), 'confirmPassword'),
+                        ['password.confirm'],
+                        [],
+                    ),
+                )
+                ->name('two-factor.show');
+        });
+    });
+});

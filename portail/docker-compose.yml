@@ -50,9 +50,9 @@ services:
       - ./docker/db:/var/lib/mysql
       - ./docker/db/my.cnf:/etc/mysql/conf.d/my.cnf:ro  # ← Config personnalisée
       - ./docker/db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro  # ← Script d'initialisation
-      - ./docker/db/init.sql-user.sql:/docker-entrypoint-initdb.d/99-create-user.sql:ro # ← Script pour créer l'utilisateur de l'application
+      #- ./docker/db/init.sql-user.sql:/docker-entrypoint-initdb.d/99-create-user.sql:ro # ← Script pour créer l'utilisateur de l'application
       #En montant un fichier ou répertoire qui n’existe pas ou qui change à chaque fois, Docker considère que le volume a changé → il recrée systématiquement le conteneur.
-      - /tmp/force-mariadb-recreate:/var/lib/mysql/FORCE_RECREATE   # ← astuce infaillible pour forcer la recréation de la BDD au redémarrage du conteneur (utile en dev)
+      #- /tmp/force-mariadb-recreate:/var/lib/mysql/FORCE_RECREATE   # ← astuce infaillible pour forcer la recréation de la BDD au redémarrage du conteneur (utile en dev)
     command: >
       --default-authentication-plugin=mysql_native_password
       --character-set-server=utf8mb4

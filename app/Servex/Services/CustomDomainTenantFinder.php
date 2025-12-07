@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Servex\Utils;
+namespace App\Servex\Services;
 
 use Illuminate\Http\Request;
 use App\Models\Customer;

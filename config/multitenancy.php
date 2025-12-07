@@ -11,7 +11,7 @@ use Spatie\Multitenancy\Actions\ForgetCurrentTenantAction;
 use Spatie\Multitenancy\Actions\MakeQueueTenantAwareAction;
 use Spatie\Multitenancy\Actions\MakeTenantCurrentAction;
 use Spatie\Multitenancy\Actions\MigrateTenantAction;
-use App\Servex\Utils\CustomDomainTenantFinder;
+use App\Servex\Services\CustomDomainTenantFinder;
 use App\Models\Customer;
 
 return [

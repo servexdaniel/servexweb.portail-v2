@@ -5,7 +5,7 @@ namespace App\Servex\Traits;
 use App\Models\Domain;
 use Illuminate\Support\Arr;
 use App\Models\Customer;
-use App\Servex\Utils\CustomDomainTenantFinder;
+use App\Servex\Services\CustomDomainTenantFinder;
 
 trait UsesDomainTrait
 {

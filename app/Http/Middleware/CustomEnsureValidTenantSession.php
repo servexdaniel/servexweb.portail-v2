@@ -6,7 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use App\Servex\Services\TenantManager;
-use App\Servex\Utils\CustomDomainTenantFinder;
+use App\Servex\Services\CustomDomainTenantFinder;
 use Spatie\Multitenancy\Concerns\UsesMultitenancyConfig;
 
 class CustomEnsureValidTenantSession

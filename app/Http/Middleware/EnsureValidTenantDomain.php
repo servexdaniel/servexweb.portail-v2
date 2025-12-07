@@ -6,7 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use \App\Servex\Utils\CustomDomainTenantFinder;
+use \App\Servex\Services\CustomDomainTenantFinder;
 
 class EnsureValidTenantDomain
 {

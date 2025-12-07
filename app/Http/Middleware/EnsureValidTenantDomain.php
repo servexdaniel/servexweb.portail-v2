@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use \App\Servex\Services\CustomDomainTenantFinder;
+use App\Servex\Services\TenantManager;
 
 class EnsureValidTenantDomain
 {
@@ -15,14 +16,9 @@ class EnsureValidTenantDomain
      */
     protected $tenantManager;
 
-    /**
-     * @var CustomDomainTenantFinder
-     */
-    protected $tenantFinder;
-
-    public function __construct(CustomDomainTenantFinder $tenantFinder)
+    public function __construct(TenantManager $tenantManager)
     {
-        $this->tenantFinder = $tenantFinder;
+        $this->tenantManager = $tenantManager;
     }
     /**
      * Handle an incoming request.

@@ -123,4 +123,8 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    'GODADDYprodKey'      => env('GODADDYprodKey'),
+    'GODADDYprodSecret'      => env('GODADDYprodSecret'),
+    'PORTAIL_ENV'           => env('PORTAIL_ENV'),
+
 ];

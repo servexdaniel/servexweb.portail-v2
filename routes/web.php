@@ -88,7 +88,7 @@ Route::group([
     'where' => ['language' => 'fr|en|es|de|it|pt'], // langues autorisées
     'middleware' => [
         \App\Http\Middleware\SetLanguage::class,              // définit app()->setLocale()
-        \App\Http\Middleware\EnsureValidTenantDomain::class,  // identifie et active le tenant
+        //\App\Http\Middleware\EnsureValidTenantDomain::class,  // identifie et active le tenant
     ],
 ], function () {
 

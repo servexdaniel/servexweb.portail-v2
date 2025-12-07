@@ -4,6 +4,8 @@ namespace App\Servex\Traits;
 
 use App\Models\Domain;
 use Illuminate\Support\Arr;
+use App\Models\Customer;
+use App\Servex\Utils\CustomDomainTenantFinder;
 
 trait UsesDomainTrait
 {
@@ -59,5 +61,16 @@ trait UsesDomainTrait
             $domain->save();
         }
         return Domain::all();
+    }
+
+    function getCurrentTenant()
+    {
+        if (Customer::checkCurrent()) {
+            $tenant = app('currentTenant');
+        } else {
+            $tenantFinder = app(CustomDomainTenantFinder::class);
+            $tenant = $tenantFinder->findForRequest(request());
+        }
+        return $tenant;
     }
 }

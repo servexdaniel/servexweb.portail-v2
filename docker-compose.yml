@@ -1,0 +1,146 @@
+version: '3.9'
+
+services:
+  # ====================== PHP-FPM ======================
+  php-fpm:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: portail-php-fpm
+    restart: unless-stopped
+    volumes:
+      - .:/var/www/html  # Développement : hot-reload
+      - ./docker/php/php.ini:/usr/local/etc/php/conf.d/custom.ini:ro  # Optionnel : config PHP personnalisée
+      - ./docker/supervisor/logs:/var/log/supervisor
+    env_file:
+      - ./.env
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - DB_HOST=portail-mariadb
+      - DB_PORT=3306 # ← port interne (3306), pas 3350
+      - DB_DATABASE=${DB_DATABASE}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - APP_KEY=${APP_KEY}
+      - CACHE_DRIVER=${CACHE_DRIVER}
+      - SESSION_DRIVER=${SESSION_DRIVER}
+      - QUEUE_CONNECTION=${QUEUE_CONNECTION}
+
+    networks:
+      - portail-network
+
+  # ====================== MARIADB ======================
+  portail-mariadb:
+    image: mariadb:11.4
+    container_name: portail-mariadb
+    restart: unless-stopped
+    env_file:
+      - ./.env
+    environment:
+      - MARIADB_DATABASE=${DB_DATABASE}
+      - MARIADB_USER=${DB_USERNAME}
+      - MARIADB_PASSWORD=${DB_PASSWORD}
+      - MARIADB_ROOT_PASSWORD=${DB_PASSWORD}
+      - MARIADB_ALLOW_EMPTY_ROOT_PASSWORD=no
+
+    ports:
+      - "3350:3306"
+    volumes:
+      - ./docker/db:/var/lib/mysql
+      - ./docker/db/my.cnf:/etc/mysql/conf.d/my.cnf:ro  # ← Config personnalisée
+      - ./docker/db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro  # ← Script d'initialisation
+      - ./docker/db/init.sql-user.sql:/docker-entrypoint-initdb.d/99-create-user.sql:ro # ← Script pour créer l'utilisateur de l'application
+      #En montant un fichier ou répertoire qui n’existe pas ou qui change à chaque fois, Docker considère que le volume a changé → il recrée systématiquement le conteneur.
+      - /tmp/force-mariadb-recreate:/var/lib/mysql/FORCE_RECREATE   # ← astuce infaillible pour forcer la recréation de la BDD au redémarrage du conteneur (utile en dev)
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --innodb-buffer-pool-size=256M
+    networks:
+      - portail-network
+
+  # ====================== NGINX ======================
+  portail-web:
+    image: nginx:alpine
+    container_name: portail-web
+    restart: unless-stopped
+    ports:
+      - "8001:80"
+    volumes:
+      - .:/var/www/html  # ← ESSENTIEL : même code que php-fpm
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - php-fpm
+    networks:
+      - portail-network
+
+  # ====================== SUPERVISOR-WEB ======================
+  supervisor-web:
+    image: nginx:alpine
+    container_name: portail-supervisor-web
+    restart: unless-stopped
+    ports:
+      - "9001:80"
+    volumes:
+      - ./docker/supervisor/logs:/var/log/supervisor:ro
+      - ./docker/supervisor/web.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - php-fpm
+    networks:
+      - portail-network
+
+  #====================== RABBITMQ (avec Management UI) ======================
+  # portail-rabbitmq:
+  #   image: rabbitmq:3.13-management-alpine   # version stable + interface web
+  #   container_name: portail-rabbitmq
+  #   restart: unless-stopped
+  #   environment:
+  #     - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER:-guest}
+  #     - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASS:-guest}
+  #     - RABBITMQ_DEFAULT_VHOST=${RABBITMQ_VHOST:-/}
+  #     - RABBITMQ_DEFINITIONS_FILE=/etc/rabbitmq/definitions.json
+  #   ports:
+  #     - "5672:5672"    # Port AMQP (utilisé par Laravel, Symfony, etc.)
+  #     - "15672:15672"  # Port Management UI → http://localhost:15672
+  #     - "1883:1883"     # MQTT
+  #     - "8883:8883"     # MQTT/SSL
+  #     - "61613:61613"   # STOMP
+  #     - "41416:41416"   # STOMP/SSL / Web-STOMP / Web-MQTT (pour MQTT over WebSocket)
+  #     # - "25672:25672" # Clustering (rarement exposé en dev)
+  #   volumes:
+  #     # En dev on désactive généralement la persistance pour aller plus vite
+  #     # Si vous voulez garder les queues/exchanges persistants, décommentez la ligne suivante :
+  #     # - ./docker/rabbitmq/data:/var/lib/rabbitmq
+  #     #- /var/lib/rabbitmq  # volume anonyme = données perdues au docker-compose down -v
+
+  #     # ← On garde la persistance des données RabbitMQ
+  #     - ./docker/rabbitmq/data:/var/lib/rabbitmq
+
+  #     # ← Les fichiers de configuration personnalisés
+  #     - ./docker/rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
+  #     - ./docker/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+  #     - ./docker/rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins:ro
+
+  #     # ← dossier partagé avec l’hôte pour garder les certificats même après un down -v
+  #     - ./docker/rabbitmq/certs:/etc/rabbitmq/certs
+
+  #     # ← Le script qui génère les certifs s’ils n’existent pas
+  #     - ./docker/rabbitmq/generate-rabbitmq-certs.sh:/usr/local/bin/generate-certs.sh:ro
+
+  #   # ← On exécute notre script AVANT que RabbitMQ démarre
+  #   entrypoint: ["/bin/sh", "-c", "generate-certs.sh && docker-entrypoint.sh rabbitmq-server"]
+
+  #   healthcheck:
+  #     test: rabbitmq-diagnostics -q ping
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 10
+  #   networks:
+  #     - portail-network
+
+# ====================== RÉSEAU ======================
+networks:
+  portail-network:
+    driver: bridge

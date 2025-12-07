@@ -21,3 +21,16 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+
+/laravel-worker.conf
+/docker/db/*
+!/docker/db/my.cnf
+!/docker/db/init.sql
+!/docker/db/init.sql-user.sql
+
+/docker/supervisor/*
+!/docker/supervisor/*.conf
+
+/docker/rabbitmq/*
+!/docker/rabbitmq/generate-rabbitmq-certs.sh
+!/docker/rabbitmq/enabled_plugins

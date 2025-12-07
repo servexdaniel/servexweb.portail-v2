@@ -6,78 +6,121 @@ use Illuminate\Http\Request;
 use App\Models\Customer;
 use Spatie\Multitenancy\TenantFinder\TenantFinder;
 use Spatie\Multitenancy\Exceptions\NoCurrentTenant;
-use Illuminate\Support\Arr;
-use App\Servex\Traits\UsesDomainTrait;
 use App\Servex\Traits\UsesCustomTenantModel;
+use App\Servex\Traits\UsesDomainTrait;
 
 class CustomDomainTenantFinder extends TenantFinder
 {
     use UsesCustomTenantModel, UsesDomainTrait;
+
     public function findForRequest(Request $request): ?Customer
     {
-        $host = $request->getHost();
-        $domain = "";
-        $subdomain = "";
-        $custom_tenant = "";
+        $host      = $request->getHost();               // ex: client1.test.localhost ou prod.client1.mondomaine.fr
+        $tenant    = null;
+
         try {
-            if (strpos($host, ".") !== false) {
-                $segments = explode(".", $host);
-                $subdomain = $segments[0];
-                $custom_tenant = $this->getTenantModel()::whereDomain($subdomain)->first();
-                if ($custom_tenant == null) {
-                    throw new NoCurrentTenant("The current tenant doesn't match");
+            // 1. Cas classique : sous-domaine simple (client1.mondomaine.com)
+            if ($this->hasSubdomainFormat($host)) {
+                $subdomain = $this->extractSubdomain($host);
+
+                $tenant = $this->getTenantModel()::where('domain', $subdomain)->first();
+
+                if (! $tenant) {
+                    throw new NoCurrentTenant("Aucun tenant trouvé pour le domaine : {$subdomain}");
                 }
-            } else {
-                throw new NoCurrentTenant("No current tenant");
+
+                // En environnement local, on accepte même si le domaine complet n'est pas dans la liste config
+                if (! $this->isDomainAllowedInProduction($host)) {
+                    throw new NoCurrentTenant("Domaine non autorisé : {$host}");
+                }
+
+                $tenant->makeCurrent();
+                return $tenant;
             }
 
-            $domains = Arr::pluck($this->getDomains(), 'domain');
-            $base_url = config('app.url');
-            if (strpos($base_url, "http://") !== false) {
-                $base_url = str_replace("http://", "", $base_url);
-            }
-
-            $env = config('app.env');
-            if ($env == 'local') {
-                $local_url = $_SERVER['HTTP_HOST'];
-                $base_url = explode(":", $local_url)[0];
-                $segments = explode(".", $base_url);
-
-                $isSubDomainExist = Customer::select("*")
-                    ->where("domain", $subdomain)
-                    ->exists();
-
-                if (!$isSubDomainExist) {
-                    throw new NoCurrentTenant("Current tenant not valid");
-                }
-                $custom_tenant->makeCurrent();
-                return $custom_tenant;
-            } else if ($env == 'production') {
-                $host_arr = explode(".", $host);
-
-                if ($host_arr[1] == "test") {
-                    //Staging
-                    $current_domain = $host_arr[0] . "." . $host_arr[1];
-                    $key = array_search($current_domain, $domains);
-                    $is_current_domain_valid = (is_numeric($key));
-                    if (!$is_current_domain_valid) throw new NoCurrentTenant("Current tenant not valid");
-
-                    $custom_tenant->makeCurrent();
-                    return $custom_tenant;
-                } else {
-                    //Production OVH
-                    $current_domain = $host_arr[1] . "." . $host_arr[2];
-                    $key = array_search($current_domain, $domains);
-                    $is_current_domain_valid = (is_numeric($key));
-                    if (!$is_current_domain_valid) throw new NoCurrentTenant("Current tenant not valid");
-
-                    $custom_tenant->makeCurrent();
-                    return $custom_tenant;
+            // 2. Cas particulier de production OVH / staging
+            if (app()->environment('production') || app()->environment('staging')) {
+                $tenant = $this->resolveTenantForProductionOrStaging($host);
+                if ($tenant) {
+                    $tenant->makeCurrent();
+                    return $tenant;
                 }
             }
-        } catch (\Exception $ex) {
-            throw new NoCurrentTenant($ex->getMessage());
+
+            throw new NoCurrentTenant("No current tenant : {$host}");
+        } catch (NoCurrentTenant $e) {
+            throw $e; // On laisse passer l'exception dédiée
+        } catch (\Throwable $e) {
+            throw new NoCurrentTenant("Erreur lors de la résolution du tenant : " . $e->getMessage());
         }
+    }
+
+    /**
+     * Vérifie si le host ressemble à un sous-domaine (au moins un point)
+     */
+    private function hasSubdomainFormat(string $host): bool
+    {
+        return strpos($host, '.') !== false;
+    }
+
+    /**
+     * Extrait le sous-domaine (premier segment)
+     */
+    private function extractSubdomain(string $host): string
+    {
+        return explode('.', $host)[0];
+    }
+
+    /**
+     * Vérifie que le domaine complet fait partie de la liste autorisée (config ou DB)
+     */
+    private function isDomainAllowedInProduction(string $host): bool
+    {
+        if (app()->environment('local')) {
+            return true; // En local on accepte tout tant que le sous-domaine existe dans servex_customers
+        }
+
+        $allowedDomains = collect($this->getDomains())->pluck('domain')->toArray();
+
+        return in_array($host, $allowedDomains, true)
+            || in_array($this->extractSubdomain($host), $this->getTenantModel()::pluck('domain')->toArray());
+    }
+
+    /**
+     * Logique spécifique pour les environnements de staging/production OVH
+     */
+    private function resolveTenantForProductionOrStaging(string $host): ?Customer
+    {
+        $parts = explode('.', $host);
+
+        // production OVH → client1.mondomaine.fr
+        if (count($parts) >= 3) {
+            $domainKey = $parts[1] . '.' . $parts[2]; // ex: mondomaine.fr
+            return $this->findTenantByDomainKey($domainKey);
+        }
+
         return null;
+    }
+
+    /**
+     * Recherche un tenant via la liste de domaines configurés (getDomains())
+     */
+    private function findTenantByDomainKey(string $domainKey): ?Customer
+    {
+        $domains = collect($this->getDomains())->pluck('domain', 'id')->toArray();
+
+        $tenantId = array_search($domainKey, $domains, true);
+
+        if ($tenantId === false) {
+            throw new NoCurrentTenant("Domaine configuré non trouvé : {$domainKey}");
+        }
+
+        $tenant = $this->getTenantModel()::find($tenantId);
+
+        if (! $tenant) {
+            throw new NoCurrentTenant("Tenant introuvable en base pour l'ID : {$tenantId}");
+        }
+
+        return $tenant;
     }
 }

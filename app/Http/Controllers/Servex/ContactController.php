@@ -7,9 +7,13 @@ use Illuminate\Http\Request;
 
 class ContactController extends Controller
 {
+    public function login()
+    {
+        return view('auth.servex.login');
+    }
     public function register()
     {
-        dd("register");
+        return view('auth.servex.register');
     }
 
     public function showForgetPasswordForm()

@@ -18,6 +18,11 @@ return [
         'passwords' => env('AUTH_PASSWORD_BROKER', 'users'),
     ],
 
+    'contact'=>[
+        'driver'=>'eloquent',
+        'model'=>App\Models\Contact::class,
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Authentication Guards
@@ -39,6 +44,11 @@ return [
         'web' => [
             'driver' => 'session',
             'provider' => 'users',
+        ],
+
+        'contact'=>[
+            'driver'=>'session',
+            'provider'=>'contact_provider',
         ],
     ],
 
@@ -69,6 +79,11 @@ return [
         //     'driver' => 'database',
         //     'table' => 'users',
         // ],
+
+        'contact_provider'=>[
+            'driver'=>'eloquent',
+            'model'=>App\Models\Contact::class,
+        ],
     ],
 
     /*

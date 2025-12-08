@@ -24,7 +24,7 @@ class RedirectIfAuthenticated
                     if (Auth::guard('contact')->user()->CcIsManager) {
                         return redirect()->route('contact.calls.columns.settings', ['language' => app()->getLocale()]);
                     } else {
-                        return redirect()->route('contact.home', ['language' => app()->getLocale()]);
+                        return redirect()->route('contact.dashboard', ['language' => app()->getLocale()]);
                     }
                 }
                 if ($guard == 'web') {

@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 
-class Contact extends Model
+class Contact extends Authenticatable
 {
+    use HasFactory;
     protected $table = 'servex_contacts';
 
     protected $fillable = [

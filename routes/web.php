@@ -21,7 +21,7 @@ Route::group([
     // - le tenant actif (ou 404 si invalide)
     // - accès via /fr/dashboard, /en/dashboard, etc.
 
-    require __DIR__ . '/auth.php';
+    require __DIR__ . '/servex/auth.php';
 
     Route::get('/', fn() => view('welcome'))->name('home');
 
@@ -35,4 +35,11 @@ Route::group([
 
     // Tu peux ajouter ici toutes tes autres routes (API, admin, etc.)
     // Elles seront automatiquement protégées par langue + tenant
+
+    /**
+     * Guard "contact" pour les contacts des clients
+     */
+    Route::prefix('contact')->name('contact.')->group(function () {
+        require __DIR__ . '/servex/contact.php';
+    });
 });

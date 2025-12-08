@@ -23,4 +23,9 @@ class Customer extends Tenant
         'remoteServer',
         'remoteServerPort'
     ];
+
+    public function menuLabels()
+    {
+        return $this->belongsToMany('App\Models\Label');
+    }
 }

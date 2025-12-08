@@ -24,6 +24,7 @@ class ValidateSettingsMiddleware
             //Valider si la route courrante, 'est pas cachée (via les configurations)
             $routename = Route::currentRouteName();
             $client = $this->getCurrentTenant();
+            dd($client, $client->menuLabels);
             $HiddenRoutes = $client->menuLabels->pluck('route');
             $isRouteHidden = $HiddenRoutes->contains(function ($value, $key) use ($routename) {
                 return $value == $routename;

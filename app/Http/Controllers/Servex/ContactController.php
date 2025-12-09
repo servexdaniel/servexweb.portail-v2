@@ -30,12 +30,12 @@ class ContactController extends Controller
     }
     public function showLoginForm()
     {
-        return view('auth.servex.login');
+        return view('auth.contact.login');
     }
 
     public function create()
     {
-        return view('auth.servex.register'); // ou ta vue avec Flux
+        return view('auth.contact.register'); // ou ta vue avec Flux
     }
 
     public function store(Request $request)
@@ -63,12 +63,12 @@ class ContactController extends Controller
 
     public function showForgetPasswordForm()
     {
-        return view('auth.servex.forget-password');
+        return view('auth.contact.forget-password');
     }
 
     public function showResetPasswordForm($token, Request $request)
     {
-        return view('auth.servex.reset-password', ['token' => $token, 'request' => $request]);
+        return view('auth.contact.reset-password', ['token' => $token, 'request' => $request]);
     }
 
     public function submitForgetPasswordForm(Request $request)

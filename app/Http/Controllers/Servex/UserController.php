@@ -26,12 +26,12 @@ class UserController extends Controller
     }
     public function showLoginForm()
     {
-        return view('auth.servex.login');
+        return view('auth.user.login');
     }
 
     public function create()
     {
-        return view('auth.servex.register'); // ou ta vue avec Flux
+        return view('auth.user.register'); // ou ta vue avec Flux
     }
 
     public function store(Request $request)
@@ -59,12 +59,12 @@ class UserController extends Controller
 
     public function showForgetPasswordForm()
     {
-        return view('auth.servex.forget-password');
+        return view('auth.user.forget-password');
     }
 
     public function showResetPasswordForm($token, Request $request)
     {
-        return view('auth.servex.reset-password', ['token' => $token, 'request' => $request]);
+        return view('auth.user.reset-password', ['token' => $token, 'request' => $request]);
     }
 
     public function submitForgetPasswordForm(Request $request)

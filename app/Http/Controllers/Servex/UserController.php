@@ -79,20 +79,20 @@ class UserController extends Controller
 
     public function dashboard()
     {
-        return view('contact.dashboard'); // ou ta vue avec Flux
+        return view('user.dashboard'); // ou ta vue avec Flux
     }
 
     public function profile()
     {
-        return view('contact.profile'); // ou ta vue avec Flux
+        return view('user.profile'); // ou ta vue avec Flux
     }
 
     public function logout(Request $request)
     {
         dd("logout");
-        auth('contact')->logout();
+        auth('web')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        return redirect()->route('contact.login');
+        return redirect()->route('user.login');
     }
 }

@@ -21,10 +21,14 @@ Route::group([
     // - le tenant actif (ou 404 si invalide)
     // - accès via /fr/dashboard, /en/dashboard, etc.
 
-    require __DIR__ . '/servex/auth.php';
+    //require __DIR__ . '/servex/auth.php';
+
+    require __DIR__ . '/servex/user.php';
+
 
     Route::get('/', fn() => view('welcome'))->name('home');
 
+    /*
     Route::view('dashboard', 'dashboard')
         ->middleware(['auth', 'verified'])
         ->name('dashboard');
@@ -32,6 +36,7 @@ Route::group([
     Route::view('profile', 'profile')
         ->middleware(['auth'])
         ->name('profile');
+    */
 
     // Tu peux ajouter ici toutes tes autres routes (API, admin, etc.)
     // Elles seront automatiquement protégées par langue + tenant

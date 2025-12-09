@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Customer;
 
 class Label extends Model
 {
@@ -20,6 +21,15 @@ class Label extends Model
 
     public function menuLabels()
     {
-        return $this->belongsToMany('App\Models\Customer');
+        /*
+        return $this->belongsToMany(
+            'App\Models\Customer',
+            'servex_customer_labels', // nom de la table pivot ex: 'servex_customer_labels'
+            'label_id',
+            'customer_id'
+        );
+        */
+
+        return $this->belongsToMany(Customer::class, 'servex_customer_labels', 'label_id', 'customer_id');
     }
 }

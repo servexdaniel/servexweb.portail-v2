@@ -23,7 +23,7 @@ Route::middleware(['guest:contact', 'PreventBackHistory'])->group(function () {
 });
 
 Route::middleware(['auth:contact', 'PreventBackHistory'])->group(function () {
-    Route::view('/dashboard', 'dashboard.contact.dashboard')->name('dashboard')->middleware('validate.settings');
+    Route::get('/dashboard', [ContactController::class, 'dashboard'])->name('dashboard')->middleware('validate.settings');
     Route::view('/profil', 'dashboard.contact.profil')->name('profil');
     Route::post('logout', [ContactController::class, 'logout'])->name('logout');
 });

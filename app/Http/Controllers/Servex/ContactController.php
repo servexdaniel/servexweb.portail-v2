@@ -39,7 +39,7 @@ class ContactController extends Controller
             'CuName'     => $request->name,
             'username'  => $request->name,
             'email'    => $request->email,
-            //'password' => Hash::make($request->password),
+            'password' => Hash::make($request->password),
         ]);
 
         // Très important : connexion avec le guard "contact"
@@ -67,6 +67,11 @@ class ContactController extends Controller
     public function submitResetPasswordForm(Request $request)
     {
         dd("submitResetPasswordForm");
+    }
+
+    public function dashboard()
+    {
+        return view('contact.dashboard'); // ou ta vue avec Flux
     }
 
     public function logout(Request $request)

@@ -17,8 +17,8 @@
                 <flux:input name="password" :label="__('Password')" type="password" required
                     autocomplete="current-password" :placeholder="__('Password')" viewable />
 
-                @if (Route::has('contact.password.request'))
-                    <flux:link class="absolute top-0 text-sm end-0" :href="route('contact.password.request')"
+                @if (Route::has('password.request'))
+                    <flux:link class="absolute top-0 text-sm end-0" :href="route('password.request')"
                         wire:navigate>
                         {{ __('Forgot your password?') }}
                     </flux:link>

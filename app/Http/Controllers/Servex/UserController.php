@@ -4,12 +4,8 @@ namespace App\Http\Controllers\Servex;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Contact;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rules\Password;
 
-class ContactController extends Controller
+class UserController extends Controller
 {
     public function login(Request $request)
     {
@@ -18,10 +14,10 @@ class ContactController extends Controller
             'password' => 'required',
         ]);
 
-        if (Auth::guard('contact')->attempt($credentials, $request->filled('remember'))) {
+        if (Auth::guard('web')->attempt($credentials, $request->filled('remember'))) {
             $request->session()->regenerate();
 
-            return redirect()->intended(route('contact.dashboard'));
+            return redirect()->intended(route('dashboard'));
         }
 
         return back()->withErrors([

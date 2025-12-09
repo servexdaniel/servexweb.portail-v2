@@ -28,7 +28,7 @@ class RedirectIfAuthenticated
                     }
                 }
                 if ($guard == 'web') {
-                    return redirect()->route('user.home', ['language' => app()->getLocale()]);
+                    return redirect()->route('dashboard', ['language' => app()->getLocale()]);
                 }
             }
         }

@@ -4,6 +4,10 @@ namespace App\Http\Controllers\Servex;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules\Password;
 
 class UserController extends Controller
 {
@@ -50,8 +54,6 @@ class UserController extends Controller
 
         // Très important : connexion avec le guard "web"
         Auth::guard('web')->login($user);
-
-        dd("User registered and logged in");
 
         // Redirection après inscription (dashboard user, etc.)
         return redirect()->intended(route('dashboard',['language' => app()->getLocale()]));

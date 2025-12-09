@@ -36,8 +36,8 @@ $logout = function (Logout $logout) {
                     <x-slot name="trigger">
                         <button
                             class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
-                            <div x-data="{{ json_encode(['name' => auth()->user()->name]) }}" x-text="name"
-                                x-on:profile-updated.window="name = $event.detail.name"></div>
+                            <div x-data="{{ json_encode(['name' => auth('contact')->user()->CcName]) }}" x-text="name"
+                                x-on:profile-updated.window="name = $event.detail.CcName"></div>
 
                             <div class="ms-1">
                                 <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg"
@@ -51,7 +51,11 @@ $logout = function (Logout $logout) {
                     </x-slot>
 
                     <x-slot name="content">
-                        <x-dropdown-link :href="route('contact.profile')" wire:navigate>
+                        {{-- <x-dropdown-link :href="route('contact.profile')" wire:navigate>
+                            {{ __('Profile Contact') }}
+                        </x-dropdown-link> --}}
+
+                        <x-dropdown-link wire:navigate>
                             {{ __('Profile Contact') }}
                         </x-dropdown-link>
 
@@ -92,13 +96,17 @@ $logout = function (Logout $logout) {
         <!-- Responsive Settings Options -->
         <div class="pt-4 pb-1 border-t border-gray-200">
             <div class="px-4">
-                <div class="font-medium text-base text-gray-800" x-data="{{ json_encode(['name' => auth()->user()->name]) }}" x-text="name"
-                    x-on:profile-updated.window="name = $event.detail.name"></div>
-                <div class="font-medium text-sm text-gray-500">{{ auth()->user()->email }}</div>
+                <div class="font-medium text-base text-gray-800" x-data="{{ json_encode(['name' => auth('contact')->user()->CcName]) }}" x-text="name"
+                    x-on:profile-updated.window="name = $event.detail.CcName"></div>
+                <div class="font-medium text-sm text-gray-500">{{ auth('contact')->user()->email }}</div>
             </div>
 
             <div class="mt-3 space-y-1">
-                <x-responsive-nav-link :href="route('contact.profile')" wire:navigate>
+                {{-- <x-responsive-nav-link :href="route('contact.profile')" wire:navigate>
+                    {{ __('Profile Contact') }}
+                </x-responsive-nav-link> --}}
+
+                <x-responsive-nav-link wire:navigate>
                     {{ __('Profile Contact') }}
                 </x-responsive-nav-link>
 

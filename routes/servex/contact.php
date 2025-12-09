@@ -14,8 +14,7 @@ Route::middleware(['guest:contact', 'PreventBackHistory'])->group(function () {
     Route::get('register', [ContactController::class, 'create'])->name('register');
 
     // Traitement du formulaire
-    Route::post('/register', [ContactController::class, 'store'])
-         ->name('register.store');
+    Route::post('/register', [ContactController::class, 'store'])->name('register.store');
 
     // Page de connexion
     Route::get('/login', [ContactController::class, 'showLoginForm'])->name('login');
@@ -24,7 +23,7 @@ Route::middleware(['guest:contact', 'PreventBackHistory'])->group(function () {
 
 Route::middleware(['auth:contact', 'PreventBackHistory'])->group(function () {
     Route::get('/dashboard', [ContactController::class, 'dashboard'])->name('dashboard')->middleware('validate.settings');
-    Route::view('/profil', 'dashboard.contact.profil')->name('profil');
+    Route::get('/profil', [ContactController::class, 'profil'])->name('profil');
     Route::post('logout', [ContactController::class, 'logout'])->name('logout');
 });
 

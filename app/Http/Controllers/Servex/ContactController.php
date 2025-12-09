@@ -11,11 +11,23 @@ use Illuminate\Validation\Rules\Password;
 
 class ContactController extends Controller
 {
-    public function login()
+     public function login(Request $request)
     {
-        dd("login");
-    }
+        $credentials = $request->validate([
+            'email'    => 'required|email',
+            'password' => 'required',
+        ]);
 
+        if (Auth::guard('contact')->attempt($credentials, $request->filled('remember'))) {
+            $request->session()->regenerate();
+
+            return redirect()->intended(route('contact.dashboard'));
+        }
+
+        return back()->withErrors([
+            'email' => 'The provided credentials do not match our records.',
+        ])->onlyInput('email');
+    }
     public function showLoginForm()
     {
         return view('auth.servex.login');
@@ -72,6 +84,11 @@ class ContactController extends Controller
     public function dashboard()
     {
         return view('contact.dashboard'); // ou ta vue avec Flux
+    }
+
+    public function profil()
+    {
+        return view('contact.profil'); // ou ta vue avec Flux
     }
 
     public function logout(Request $request)

@@ -86,9 +86,9 @@ class ContactController extends Controller
         return view('contact.dashboard'); // ou ta vue avec Flux
     }
 
-    public function profil()
+    public function profile()
     {
-        return view('contact.profil'); // ou ta vue avec Flux
+        return view('contact.profile'); // ou ta vue avec Flux
     }
 
     public function logout(Request $request)

@@ -32,7 +32,7 @@
                         </svg>
                     </div>
                     @if (Route::has('login'))
-                        <livewire:welcome.navigation />
+                        <livewire:user.navigation />
                     @endif
                 </header>
 

@@ -58,7 +58,7 @@ class ContactController extends Controller
         Auth::guard('contact')->login($contact);
 
         // Redirection après inscription (dashboard contact, etc.)
-        return redirect()->intended(route('contact.dashboard'));
+        return redirect()->intended(route('contact.dashboard', ['language' => app()->getLocale()]));
     }
 
     public function showForgetPasswordForm()

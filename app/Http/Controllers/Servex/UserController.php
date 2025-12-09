@@ -38,23 +38,23 @@ class UserController extends Controller
     {
         $request->validate([
             'name'     => 'required|string|max:255',
-            'email'    => 'required|string|email|max:255|unique:servex_contacts,email',
+            'email'    => 'required|string|email|max:255|unique:users,email',
             'password' => ['required', 'confirmed', Password::defaults()],
         ]);
 
-        $contact = Contact::create([
-            'CcName'     => $request->name,
-            'CuName'     => $request->name,
-            'username'  => $request->name,
+        $user = User::create([
+            'name'     => $request->name,
             'email'    => $request->email,
             'password' => Hash::make($request->password),
         ]);
 
-        // Très important : connexion avec le guard "contact"
-        Auth::guard('contact')->login($contact);
+        // Très important : connexion avec le guard "web"
+        Auth::guard('web')->login($user);
 
-        // Redirection après inscription (dashboard contact, etc.)
-        return redirect()->intended(route('contact.dashboard'));
+        dd("User registered and logged in");
+
+        // Redirection après inscription (dashboard user, etc.)
+        return redirect()->intended(route('dashboard',['language' => app()->getLocale()]));
     }
 
     public function showForgetPasswordForm()

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Actions;
+namespace App\Livewire\Actions\User;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
@@ -16,5 +16,6 @@ class Logout
 
         Session::invalidate();
         Session::regenerateToken();
+
     }
 }

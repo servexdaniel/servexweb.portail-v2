@@ -1,6 +1,6 @@
 <?php
 
-use App\Livewire\Actions\Logout;
+use App\Livewire\Actions\User\Logout;
 
 $logout = function (Logout $logout) {
     $logout();

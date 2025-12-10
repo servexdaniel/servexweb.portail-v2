@@ -1,5 +1,11 @@
 <?php
-namespace App\Http\Mobility;
+namespace App\Http\Mobility\Modules;
+use App\Http\Mobility\Interfaces\IServexAuth;
+use App\Http\Mobility\ServexMobilityClient;
+use App\Http\Mobility\Commands\CoValidateWebLogin;
+use App\Models\Contact;
+use Illuminate\Support\Facades\Auth;
+use Exception;
 class ServexAuth implements IServexAuth
 {
     private ServexMobilityClient $servexMobilityClient;
@@ -45,6 +51,8 @@ class ServexAuth implements IServexAuth
             if (!is_null($response)) {
                 $user_info = $response['data'];
 
+                dd($user_info);
+                /*
                 if ($user_info['LoginSuccess'] == "SUCCES") {
                     $contact = Contact::find(Auth::guard('contact')->user()->id);
 
@@ -82,6 +90,7 @@ class ServexAuth implements IServexAuth
                     return true;
                 }
                 return false;
+                */
             }
             return false;
         } catch (\Exception $e) {

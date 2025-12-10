@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Mobility\ServexMobilityClient;
+namespace App\Http\Mobility;
 
 use App\Models\Customer;
 use Stomp\Client;
@@ -31,7 +31,7 @@ class ServexMobilityClient
         $this->messageId  = time() . '-' . uniqid(true);
         $this->MySubID    = $this->vhost . "_" . $this->messageId;
 
-        $this->consumer = new Client('tcp://' . $this->client->rabbitmq_host . ':' . $this->client->rabbitmq_port);
+        $this->consumer = new Client('tcp://' . $this->client->rabbimq_host . ':' . $this->client->rabbitmq_port);
 
         // set clientId on a consumer to make it durable
         $this->consumer->setClientId($this->MySubID);

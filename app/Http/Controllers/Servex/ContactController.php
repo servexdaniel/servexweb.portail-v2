@@ -8,6 +8,7 @@ use App\Models\Contact;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
+use \App\Http\Mobility\Modules\ServexAuth;
 
 class ContactController extends Controller
 {
@@ -17,6 +18,10 @@ class ContactController extends Controller
             'email'    => 'required|email',
             'password' => 'required',
         ]);
+
+        $isLoggedIn = (new ServexAuth("FOBE01", "daniel", $credentials['password']))->authenticate();
+
+        dd($isLoggedIn);
 
         if (Auth::guard('contact')->attempt($credentials, $request->filled('remember'))) {
             $request->session()->regenerate();

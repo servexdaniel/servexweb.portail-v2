@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Mobility;
+namespace App\Http\Mobility\Interfaces;
 
 interface IServexAuth
 {

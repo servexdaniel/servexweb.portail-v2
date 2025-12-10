@@ -1,5 +1,5 @@
 <?php
-namespace App\Http\Mobility\Commands;
+namespace App\Http\Mobility;
 
 use Stomp\Transport\Message;
 

@@ -6,7 +6,7 @@ use App\Http\Mobility\Commands\ServexCommandHeader;
 
 use Stomp\Transport\Message;
 
-class CoValidateWebLogin /*implements IServexCommand*/
+class CoValidateWebLogin implements IServexCommand
 {
     public function getParams($messageUIID, array $criteria = []): ServexCommandHeader
     {

@@ -1,5 +1,6 @@
 <?php
 namespace App\Http\Mobility\Interfaces;
+use App\Http\Mobility\Commands\ServexCommandHeader;
 
 interface IServexCommand
 {

@@ -4,11 +4,11 @@ on:
   push:
     branches:
       - develop
-      - main
+      - main2
   pull_request:
     branches:
       - develop
-      - main
+      - main2
 
 jobs:
   ci:
@@ -29,8 +29,8 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
-          cache: 'npm'
+          node-version: "22"
+          cache: "npm"
 
       - name: Install Node Dependencies
         run: npm i

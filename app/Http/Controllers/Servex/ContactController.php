@@ -42,7 +42,8 @@ class ContactController extends Controller
 
         $contact = (new ServexAuth("", "daniel", $credentials['password']))->authenticate();
 
-        dd($contact);
+        $customers = session('servex_customers');
+        dd($contact, $customers);
 
         if($contact != null)
         {

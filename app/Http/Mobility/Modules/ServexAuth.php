@@ -87,7 +87,12 @@ class ServexAuth implements IServexAuth
             ];
 
         } catch (\Exception $e) {
-            throw new Exception($e->getMessage());
+            Log::error('Servex authentication failed', [
+                'username' => $this->username,
+                'error'    => $e->getMessage(),
+                'trace'    => $e->getTraceAsString()
+            ]);
+            return null;
         }
     }
 

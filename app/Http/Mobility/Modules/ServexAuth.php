@@ -6,8 +6,10 @@ use App\Http\Mobility\Commands\CoValidateWebLogin;
 use App\Models\Contact;
 use Illuminate\Support\Facades\Auth;
 use Exception;
+use App\Servex\Traits\UsesDomainTrait;
 class ServexAuth implements IServexAuth
 {
+    use UsesDomainTrait;
     private ServexMobilityClient $servexMobilityClient;
     private $separator;
     private string $ccCustomerNumber;
@@ -51,46 +53,45 @@ class ServexAuth implements IServexAuth
             if (!is_null($response)) {
                 $user_info = $response['data'];
 
-                dd($user_info);
-                /*
+                $criteria = [
+                    'ccCustomerNumber' => $this->ccCustomerNumber,
+                    'username' => $this->username,
+                    'password' => $this->password
+                ];
+
+                $client = $this->getCurrentTenant();
+                $contact = new Contact();
+
                 if ($user_info['LoginSuccess'] == "SUCCES") {
-                    $contact = Contact::find(Auth::guard('contact')->user()->id);
 
+                    $CcIsManager = filter_var($user_info['CcIsManager'], FILTER_VALIDATE_BOOLEAN);
+
+                    //Sauvegarder la session dans la table Contacts
+                    $timezone = config('app.timezone');
+                    $now = now();
+                    $now->setTimezone(new \DateTimeZone($timezone));
+
+                    $contact->username    = $this->username;
+                    $contact->customer_id = $client->id;
                     $contact->password    = \Hash::make($this->password);
-                    $contact->CcUnique     = $user_info['CcUnique'];
                     $contact->CuNumber    = $this->ccCustomerNumber;
-                    $contact->CuName      = $user_info['CuName'];
+                    $contact->connected_at = $now->format('Y-m-d H:i:s');
 
-                    $contact->CcName      = $user_info['CcName'];
+                    $contact->CuName      = $CcIsManager ? utf8_decode(utf8_encode($user_info['CuName'])) : $client->name;
+                    $contact->CcName      = $this->username;
                     $contact->CcIsManager = filter_var($user_info['CcIsManager'], FILTER_VALIDATE_BOOLEAN);
-                    $contact->CcPortailAdmin = filter_var($user_info['CcPortailAdmin'], FILTER_VALIDATE_BOOLEAN);
-                    $contact->CcPhoneNumber      = $user_info['CcPhoneNumber'];
-                    $contact->CcEmail      = isset($user_info['CcEmail']) ? $user_info['CcEmail'] : "";
+                    $contact->CcPortailAdmin = isset($user_info['CcPortailAdmin']) ? filter_var($user_info['CcPortailAdmin'], FILTER_VALIDATE_BOOLEAN) : false;
+                    $contact->CcPhoneNumber      = isset($user_info['CcPhoneNumber']) ? html_entity_decode(utf8_decode($user_info['CcPhoneNumber'])) : '';
+                    $contact->CcEmail      = isset($user_info['CcEmail']) ? utf8_encode(html_entity_decode(utf8_decode($user_info['CcEmail']))) : "";
 
-                    $contact->CcPhoneExt   = isset($user_info['CcPhoneExt']) ? $user_info['CcPhoneExt'] : "";
-                    $contact->CcCellNumber = isset($user_info['CcCellNumber']) ? $user_info['CcCellNumber'] : "";
+                    $contact->CcPhoneExt   = isset($user_info['CcPhoneExt']) ? utf8_encode(html_entity_decode(utf8_decode($user_info['CcPhoneExt']))) : "";
+                    $contact->CcCellNumber = isset($user_info['CcCellNumber']) ? utf8_encode(html_entity_decode(utf8_decode($user_info['CcCellNumber']))) : "";
 
-                    $contact->LoginSuccess = $user_info['LoginSuccess'];
-                    $contact->ReasonLogin = $user_info['ReasonLogin'];
-
-                    $contact->save();
-
-                    $client = getCurrentTenant();
-
-                    //Mettre à jour la société en lien avec la session actuelle
-                    Company::where('contact_id', $contact->id)->update(['isActiveSession' => 0]);
-                    Company::where('contact_id', $contact->id)
-                        ->where('customer_id', $client->id)
-                        ->where('CcCustomerNumber', $this->ccCustomerNumber)->update(['isActiveSession' => 1]);
-
-
-                    //Mettre à jour les données du consumer
-                    event(new UpdateConsumerEvent($client, $contact, $this->ccCustomerNumber));
-
-                    return true;
+                    $contact->LoginSuccess = html_entity_decode(utf8_decode($user_info['LoginSuccess']));
+                    $contact->ReasonLogin = html_entity_decode(utf8_decode($user_info['ReasonLogin']));
+                    return $contact->save();
                 }
                 return false;
-                */
             }
             return false;
         } catch (\Exception $e) {

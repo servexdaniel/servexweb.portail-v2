@@ -19,6 +19,27 @@ class ContactController extends Controller
             'password' => 'required',
         ]);
 
+        /*
+        $request->validate([
+            'login'    => 'required|string',              // champ unique dans le formulaire
+            'password' => 'required|string',
+            'remember' => 'sometimes|boolean',
+        ]);
+
+        // On construit les identifiants dynamiquement
+        $login    = $request->input('login');
+        $password = $request->input('password');
+        $remember = $request->filled('remember');
+
+        // On cherche d'abord si c’est un email ou un username
+        $field = filter_var($login, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+
+        $credentials = [
+            $field    => $login,
+            'password'=> $password,
+        ];
+        */
+
         $contact = (new ServexAuth("FOBE01", "daniel", $credentials['password']))->getContact();
 
         if($contact != null)
@@ -40,6 +61,7 @@ class ContactController extends Controller
 
         return back()->withErrors([
             'email' => 'The provided credentials do not match our records.',
+            //'login' => 'Les identifiants fournis sont incorrects.',
         ])->onlyInput('email');
     }
     public function showLoginForm()

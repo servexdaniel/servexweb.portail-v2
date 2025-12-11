@@ -4,6 +4,9 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Auth\SessionGuard;
+
 class AppServiceProvider extends ServiceProvider
 {
     /**

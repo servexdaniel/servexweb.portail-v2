@@ -11,6 +11,7 @@
                 <div class="p-6 text-gray-900">
                     {{ __("You're logged in as Contact!") }}
                 </div>
+                <pre>{{ Auth::guard('contact')->user() }}</pre>
             </div>
         </div>
     </div>

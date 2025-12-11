@@ -32,9 +32,7 @@ class ServexAuth implements IServexAuth
     public function getContact()
     {
         try {
-            //Activer la connexion
-            if (!$this->servexMobilityClient->connect()) throw new Exception("GetContact : Connexion impossible");
-            //Début de la transaction via le rabbitmq
+            $this->ensureConnection();
             $this->servexMobilityClient->beginTransaction();
 
             $commandHdr = (new CoValidateWebLogin())->getParams($this->messageId, [
@@ -43,62 +41,70 @@ class ServexAuth implements IServexAuth
                 'password' => $this->password
             ]);
 
-            //Envoyer le message
             $this->servexMobilityClient->send($commandHdr->message);
-
             $this->servexMobilityClient->commitTransaction();
 
-            $response = $this->servexMobilityClient->read();
-            $response = json_decode($response, true); // decode
-            if (!is_null($response)) {
-                $user_info = $response['data'];
-
-                $criteria = [
-                    'ccCustomerNumber' => $this->ccCustomerNumber,
-                    'username' => $this->username,
-                    'password' => $this->password
-                ];
-
-                $client = $this->getCurrentTenant();
-                $contact = new Contact();
-
-                if ($user_info['LoginSuccess'] == "SUCCES") {
-
-                    $CcIsManager = filter_var($user_info['CcIsManager'], FILTER_VALIDATE_BOOLEAN);
-
-                    //Sauvegarder la session dans la table Contacts
-                    $timezone = config('app.timezone');
-                    $now = now();
-                    $now->setTimezone(new \DateTimeZone($timezone));
-
-                    $contact->username    = $this->username;
-                    $contact->customer_id = $client->id;
-                    $contact->password    = \Hash::make($this->password);
-                    $contact->CuNumber    = $this->ccCustomerNumber;
-                    $contact->connected_at = $now->format('Y-m-d H:i:s');
-
-                    $contact->CuName      = $CcIsManager ? utf8_decode(utf8_encode($user_info['CuName'])) : $client->name;
-                    $contact->CcName      = $this->username;
-                    $contact->CcIsManager = filter_var($user_info['CcIsManager'], FILTER_VALIDATE_BOOLEAN);
-                    $contact->CcPortailAdmin = isset($user_info['CcPortailAdmin']) ? filter_var($user_info['CcPortailAdmin'], FILTER_VALIDATE_BOOLEAN) : false;
-                    $contact->CcPhoneNumber      = isset($user_info['CcPhoneNumber']) ? html_entity_decode(utf8_decode($user_info['CcPhoneNumber'])) : '';
-                    $contact->CcEmail      = isset($user_info['CcEmail']) ? utf8_encode(html_entity_decode(utf8_decode($user_info['CcEmail']))) : "";
-
-                    $contact->CcPhoneExt   = isset($user_info['CcPhoneExt']) ? utf8_encode(html_entity_decode(utf8_decode($user_info['CcPhoneExt']))) : "";
-                    $contact->CcCellNumber = isset($user_info['CcCellNumber']) ? utf8_encode(html_entity_decode(utf8_decode($user_info['CcCellNumber']))) : "";
-
-                    $contact->LoginSuccess = html_entity_decode(utf8_decode($user_info['LoginSuccess']));
-                    $contact->ReasonLogin = html_entity_decode(utf8_decode($user_info['ReasonLogin']));
-                    if($contact->save()) {
-                        return $contact;
-                    }
-                    return null;
-                }
+            $response = $this->decodeResponse($this->servexMobilityClient->read());
+            if (is_null($response)) {
                 return null;
             }
-            return null;
+
+            $user_info = $response['data'] ?? null;
+            if (!$user_info || $user_info['LoginSuccess'] !== "SUCCES") {
+                return null;
+            }
+
+            $contact = $this->createContactFromUserInfo($user_info);
+            return $contact && $contact->save() ? $contact : null;
+
         } catch (\Exception $e) {
             throw new Exception($e->getMessage());
         }
+    }
+
+    private function ensureConnection()
+    {
+        if (!$this->servexMobilityClient->connect()) {
+            throw new Exception("GetContact : Connexion impossible");
+        }
+    }
+
+    private function decodeResponse($response)
+    {
+        return json_decode($response, true);
+    }
+
+    private function createContactFromUserInfo(array $user_info)
+    {
+        $client = $this->getCurrentTenant();
+        $contact = new Contact();
+
+        $CcIsManager = filter_var($user_info['CcIsManager'], FILTER_VALIDATE_BOOLEAN);
+
+        $timezone = config('app.timezone');
+        $now = now();
+        $now->setTimezone(new \DateTimeZone($timezone));
+
+        $contact->username    = $this->username;
+        $contact->customer_id = $client->id;
+        $contact->password    = \Hash::make($this->password);
+        $contact->CuNumber    = $this->ccCustomerNumber;
+        $contact->connected_at = $now->format('Y-m-d H:i:s');
+
+        $contact->CuName      = $CcIsManager ? utf8_decode(utf8_encode($user_info['CuName'])) : $client->name;
+        $contact->CcName      = $this->username;
+        $contact->CcIsManager = $CcIsManager;
+        $contact->CcPortailAdmin = isset($user_info['CcPortailAdmin']) ? filter_var($user_info['CcPortailAdmin'], FILTER_VALIDATE_BOOLEAN) : false;
+        $contact->CcPhoneNumber      = isset($user_info['CcPhoneNumber']) ? html_entity_decode(utf8_decode($user_info['CcPhoneNumber'])) : '';
+        $contact->CcEmail      = isset($user_info['CcEmail']) ? utf8_encode(html_entity_decode(utf8_decode($user_info['CcEmail']))) : "";
+        $contact->email      = isset($user_info['CcEmail']) ? utf8_encode(html_entity_decode(utf8_decode($user_info['CcEmail']))) : "";
+
+        $contact->CcPhoneExt   = isset($user_info['CcPhoneExt']) ? utf8_encode(html_entity_decode(utf8_decode($user_info['CcPhoneExt']))) : "";
+        $contact->CcCellNumber = isset($user_info['CcCellNumber']) ? utf8_encode(html_entity_decode(utf8_decode($user_info['CcCellNumber']))) : "";
+
+        $contact->LoginSuccess = html_entity_decode(utf8_decode($user_info['LoginSuccess']));
+        $contact->ReasonLogin = html_entity_decode(utf8_decode($user_info['ReasonLogin']));
+
+        return $contact;
     }
 }

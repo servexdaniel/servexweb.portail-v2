@@ -50,12 +50,22 @@ class ServexAuth implements IServexAuth
             }
 
             $user_info = $response['data'] ?? null;
-            if (!$user_info || $user_info['LoginSuccess'] !== "SUCCES") {
+            if (!$user_info || ($user_info['LoginSuccess'] !== "SUCCES" && !isset($user_info['ListeClient']))) {
                 return null;
             }
 
-            $contact = $this->createContactFromUserInfo($user_info);
-            return $contact && $contact->save() ? $contact : null;
+            if (isset($user_info) && isset($user_info['ListeClient'])) {
+                $listeClient = (array) $user_info['ListeClient'];
+
+                $customers = $this->getCustomers($listeClient);
+                dd($response, $customers);
+            }
+            else  {
+                $contact = $this->createContactFromUserInfo($user_info);
+                dd($contact);
+                return $contact && $contact->save() ? $contact : null;
+
+            }
 
         } catch (\Exception $e) {
             throw new Exception($e->getMessage());
@@ -72,6 +82,35 @@ class ServexAuth implements IServexAuth
     private function decodeResponse($response)
     {
         return json_decode($response, true);
+    }
+
+    private function getCustomers($fields)
+    {
+        $body_arr           = explode($this->separator, $fields);
+        array_pop($body_arr);
+
+        $countFields        = 2;  //Nombre de champs retournés par la fonction (CcCustomerNumber, CcName)
+        //$totalCustomers     = count($body_arr) / $countFields;
+        $customers          = [];
+
+        if (!is_null($body_arr)) {
+            $customers = array_chunk($body_arr, $countFields, false);
+
+            $cust_map = array_map(function ($customer) {
+                return [
+                    'CcCustomerNumber'  => $customer[0],
+                    'CcName'            => $customer[1],
+                ];
+            }, $customers);
+
+            $cust_arr = array();
+            foreach (collect($cust_map)->sortBy('CcName') as $cust) {
+                array_push($cust_arr, $cust);
+            }
+            return $cust_arr;
+        }
+
+        return $customers;
     }
 
     private function createContactFromUserInfo(array $user_info)

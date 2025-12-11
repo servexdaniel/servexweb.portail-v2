@@ -18,7 +18,7 @@ services:
       - APP_ENV=local
       - APP_DEBUG=true
       - DB_HOST=portail-mariadb
-      - DB_PORT=3306 # ← port interne (3306), pas 3350
+      - DB_PORT=3306
       - DB_DATABASE=${DB_DATABASE}
       - DB_USERNAME=${DB_USERNAME}
       - DB_PASSWORD=${DB_PASSWORD}

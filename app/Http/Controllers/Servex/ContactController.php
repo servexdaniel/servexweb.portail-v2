@@ -19,14 +19,23 @@ class ContactController extends Controller
             'password' => 'required',
         ]);
 
-        $isLoggedIn = (new ServexAuth("FOBE01", "daniel", $credentials['password']))->authenticate();
+        $contact = (new ServexAuth("FOBE01", "daniel", $credentials['password']))->getContact();
 
-        dd($isLoggedIn);
+        if($contact != null)
+        {
+            //$test0 = Auth::guard('contact')->attempt($credentials, $request->filled('remember'));
+            //$test = Auth::guard('contact')->loginUsingId($contact->id);
 
-        if (Auth::guard('contact')->attempt($credentials, $request->filled('remember'))) {
-            $request->session()->regenerate();
+            // Avec la case "Se souvenir de moi" cochée ou non
+            $remember = $request->filled('remember'); // ou $request->has('remember') ou $request->filled('remember')
 
-            return redirect()->intended(route('contact.dashboard'));
+            Auth::guard('contact')->login($contact, $remember);
+
+            if (Auth::guard('contact')->check()) {
+                session()->regenerate();
+
+                return redirect()->intended(route('contact.dashboard'));
+            }
         }
 
         return back()->withErrors([

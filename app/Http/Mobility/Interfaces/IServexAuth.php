@@ -4,5 +4,5 @@ namespace App\Http\Mobility\Interfaces;
 
 interface IServexAuth
 {
-    public function authenticate();
+    public function getContact();
 }

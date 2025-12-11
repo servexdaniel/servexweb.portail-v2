@@ -29,11 +29,11 @@ class ServexAuth implements IServexAuth
 
 
 
-    public function authenticate()
+    public function getContact()
     {
         try {
             //Activer la connexion
-            if (!$this->servexMobilityClient->connect()) throw new Exception("Authenticate : Connexion impossible");
+            if (!$this->servexMobilityClient->connect()) throw new Exception("GetContact : Connexion impossible");
             //Début de la transaction via le rabbitmq
             $this->servexMobilityClient->beginTransaction();
 
@@ -89,11 +89,14 @@ class ServexAuth implements IServexAuth
 
                     $contact->LoginSuccess = html_entity_decode(utf8_decode($user_info['LoginSuccess']));
                     $contact->ReasonLogin = html_entity_decode(utf8_decode($user_info['ReasonLogin']));
-                    return $contact->save();
+                    if($contact->save()) {
+                        return $contact;
+                    }
+                    return null;
                 }
-                return false;
+                return null;
             }
-            return false;
+            return null;
         } catch (\Exception $e) {
             throw new Exception($e->getMessage());
         }

@@ -47,26 +47,44 @@ class ServexAuth implements IServexAuth
             $this->servexMobilityClient->commitTransaction();
 
             $response = $this->decodeResponse($this->servexMobilityClient->read());
-            if (is_null($response)) {
+            if (is_null($response) || empty($response['data'])) {
                 return null;
             }
 
-            $user_info = $response['data'] ?? null;
+            $user_info = $response['data'];
+            // Échec de login
             if (!$user_info || ($user_info['LoginSuccess'] !== "SUCCES" && !isset($user_info['ListeClient']))) {
                 return null;
             }
 
-            if (isset($user_info) && isset($user_info['ListeClient'])) {
-                $listeClient = $user_info['ListeClient'];
-                $customers = $this->getCustomers($listeClient);
-                dd($response, $customers);
-            }
-            else  {
-                $contact = $this->createContactFromUserInfo($user_info);
-                dd($contact);
-                return $contact && $contact->save() ? $contact : null;
+            // Cas 1 : L'utilisateur a plusieurs compagnies → on lui demande de choisir
+            if (!empty($user_info['ListeClient'])) {
+                $customers = $this->getCustomers($user_info['ListeClient']);
 
+                // On stocke temporairement en session pour le choix futur
+                session()->put('servex_customers', $customers); //ou \Session::put('servex_customers', $customers);
+                session()->put('servex_user_info', $user_info); // au cas où besoin plus tard
+
+                // Retourne la liste pour affichage (modal ou page de sélection)
+                return [
+                    'type'       => 'choose_company',
+                    'customers'  => $customers,
+                    'message'    => 'Veuillez sélectionner votre compagnie',
+                ];
             }
+
+            // Cas 2 : Une seule compagnie → création ou récupération du Contact + connexion automatique
+            $contact = $this->createContactFromUserInfo($user_info);
+
+            if (!$contact || !$contact->save()) {
+                return null;
+            }
+
+            return [
+                'type'    => 'single_company',
+                'contact' => $contact,
+                'message' => 'Connexion réussie',
+            ];
 
         } catch (\Exception $e) {
             throw new Exception($e->getMessage());

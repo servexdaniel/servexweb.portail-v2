@@ -42,6 +42,8 @@ class ContactController extends Controller
 
         $contact = (new ServexAuth("", "daniel", $credentials['password']))->authenticate();
 
+        dd($contact);
+
         if($contact != null)
         {
             //$test0 = Auth::guard('contact')->attempt($credentials, $request->filled('remember'));

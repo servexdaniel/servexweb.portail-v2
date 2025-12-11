@@ -25,3 +25,5 @@ Route::middleware(['auth:contact', 'PreventBackHistory'])->group(function () {
     Route::post('logout', [ContactController::class, 'logout'])->name('logout');
 });
 
+Route::post('/select-company', [ContactController::class, 'selectCompany'])->name('select-company');
+

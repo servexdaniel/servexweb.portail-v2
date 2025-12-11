@@ -65,6 +65,18 @@ class ServexAuth implements IServexAuth
                 session()->put('servex_customers', $customers); //ou \Session::put('servex_customers', $customers);
                 session()->put('servex_user_info', $user_info); // au cas où besoin plus tard
 
+                session()->put('servex_temp_username', $this->username);
+                session()->put('servex_temp_password', $this->password); // attention : mot de passe en clair !
+
+                $token = \Str::random(60);
+                session()->put('servex_auth_token', $token);
+                session()->put('servex_pending_auth', [
+                    'username' => $this->username,
+                    'password' => $this->password,
+                    'user_info' => $user_info,
+                    'customers' => $customers,
+                ]);
+
                 // Retourne la liste pour affichage (modal ou page de sélection)
                 return [
                     'type'       => 'choose_company',
@@ -148,7 +160,7 @@ class ServexAuth implements IServexAuth
         $client = $this->getCurrentTenant();
         $contact = new Contact();
 
-        $CcIsManager = filter_var($user_info['CcIsManager'], FILTER_VALIDATE_BOOLEAN);
+        $ccIsManager = filter_var($user_info['CcIsManager'], FILTER_VALIDATE_BOOLEAN);
 
         $timezone = config('app.timezone');
         $now = now();
@@ -160,9 +172,9 @@ class ServexAuth implements IServexAuth
         $contact->CuNumber    = $this->ccCustomerNumber;
         $contact->connected_at = $now->format('Y-m-d H:i:s');
 
-        $contact->CuName      = $CcIsManager ? utf8_decode(utf8_encode($user_info['CuName'])) : $client->name;
+        $contact->CuName      = $ccIsManager ? utf8_decode(utf8_encode($user_info['CuName'])) : $client->name;
         $contact->CcName      = $this->username;
-        $contact->CcIsManager = $CcIsManager;
+        $contact->CcIsManager = $ccIsManager;
         $contact->CcPortailAdmin = isset($user_info['CcPortailAdmin']) ? filter_var($user_info['CcPortailAdmin'], FILTER_VALIDATE_BOOLEAN) : false;
         $contact->CcPhoneNumber      = isset($user_info['CcPhoneNumber']) ? html_entity_decode(utf8_decode($user_info['CcPhoneNumber'])) : '';
         $contact->CcEmail      = isset($user_info['CcEmail']) ? utf8_encode(html_entity_decode(utf8_decode($user_info['CcEmail']))) : "";

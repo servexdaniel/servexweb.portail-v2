@@ -9,9 +9,11 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 use \App\Http\Mobility\Modules\ServexAuth;
+use App\Servex\Traits\UsesDomainTrait;
 
 class ContactController extends Controller
 {
+    use UsesDomainTrait;
     public function login(Request $request)
     {
         $credentials = $request->validate([
@@ -40,33 +42,159 @@ class ContactController extends Controller
         ];
         */
 
-        $contact = (new ServexAuth("", "daniel", $credentials['password']))->authenticate();
+        $auth = (new ServexAuth("", "daniel", $credentials['password']));
+        $result = $auth->authenticate();
 
-        $customers = session('servex_customers');
-        dd($contact, $customers);
+        if (is_null($result)) {
+            return back()->withErrors(['email' => 'Identifiants incorrects']);
+        }
 
-        if($contact != null)
-        {
-            //$test0 = Auth::guard('contact')->attempt($credentials, $request->filled('remember'));
-            //$test = Auth::guard('contact')->loginUsingId($contact->id);
+        // Cas : plusieurs compagnies → on affiche un modal/page de sélection
+        if (is_array($result) && $result['type'] === 'choose_company') {
+            // Option 1 : redirection vers une page dédiée
+            // return redirect()->route('contact.choose-company');
 
+            // Option 2 : on reste sur la page de login et on ouvre un modal (recommandé)
+            return redirect()->back()->with('show_company_modal', [
+                'show'    => true,
+                'type'    => 'choose-company',
+                'title'   => 'Choisissez votre compagnie',
+                'message' => 'Vous avez accès à plusieurs compagnies Servex.',
+                'credentials' => $credentials
+            ]);
+        }
+
+        // Cas : un seul client → connexion directe
+        if (is_array($result) && $result['type'] === 'single_company') {
             // Avec la case "Se souvenir de moi" cochée ou non
             $remember = $request->filled('remember'); // ou $request->has('remember') ou $request->filled('remember')
-
-            Auth::guard('contact')->login($contact, $remember);
-
+            Auth::guard('contact')->login($result['contact'], $remember);
             if (Auth::guard('contact')->check()) {
-                session()->regenerate();
 
+                $customers = session('servex_customers');
+                dd($result, $customers);
+
+                session()->regenerate();
                 return redirect()->intended(route('contact.dashboard'));
             }
         }
-
         return back()->withErrors([
             'email' => 'The provided credentials do not match our records.',
             //'login' => 'Les identifiants fournis sont incorrects.',
         ])->onlyInput('email');
     }
+
+
+    public function selectCompany(Request $request)
+    {
+        //$request->validate(['customer_number' => 'required']);
+
+        $request->validate([
+            'customer_number' => 'required',
+            'auth_token'      => 'required',
+            'username'    => 'required',
+            'password' => 'required',
+        ]);
+
+        // Vérifie que le token est valide et non expiré
+        if (session('servex_auth_token') !== $request->auth_token) {
+            return back()->withErrors(['error' => 'Session expirée']);
+        }
+
+        $customers = session('servex_customers', []);
+        $selected  = collect($customers)->firstWhere('CcCustomerNumber', $request->customer_number);
+
+        if (!$selected) {
+            return redirect()->route('contact.login');
+        }
+
+        // On recrée les infos avec uniquement ce client
+        $user_info = session('servex_user_info');
+        $user_info['CcCustomerNumber'] = $selected['CcCustomerNumber'];
+        $user_info['CcName'] = $selected['CcName'];
+
+        $auth = (new ServexAuth($request->customer_number, $request->username, $request->password));
+        $result = $auth->authenticate();
+
+        if (is_array($result) && $result['type'] === 'single_company') {
+            // Avec la case "Se souvenir de moi" cochée ou non
+            $remember = $request->filled('remember'); // ou $request->has('remember') ou $request->filled('remember')
+            Auth::guard('contact')->login($result['contact'], $remember);
+            if (Auth::guard('contact')->check()) {
+                session()->regenerate();
+                return redirect()->intended(route('contact.dashboard'));
+            }
+        }
+        return back()->withErrors(['error' => 'Erreur lors de la connexion']);
+    }
+
+    /**
+     * Crée ou met à jour un Contact à partir des informations retournées par Servex Mobility.
+     *
+     * @param  array  $user_info  Tableau contenant les données Servex (CcName, CcEmail, etc.)
+     * @param  string|null  $specificCustomerNumber  Optionnel : force un CcCustomerNumber précis (utilisé lors du choix de compagnie)
+     * @return Contact
+     */
+    private function createContactFromUserInfo(array $user_info, ?string $specificCustomerNumber = null): Contact
+    {
+        // Récupération du tenant actuel (multitenancy)
+        $tenant = $this->getCurrentTenant();
+
+        dd($user_info);
+        // Recherche ou création du contact (évite les doublons)
+        $contact = Contact::firstOrNew([
+            'customer_id' => $tenant->id,
+            'username'    => $this->username,
+            'CuNumber'    => $specificCustomerNumber ?? $this->ccCustomerNumber,
+        ]);
+
+        // Gestion du booléen CcIsManager ("OUI"/"NON" ou true/false selon Servex)
+        $ccIsManager = filter_var($user_info['CcIsManager'] ?? false, FILTER_VALIDATE_BOOLEAN);
+
+        // Nettoyage très robuste des chaînes venant de l'AS/400 (encodage Windows-1252 → UTF-8 + entités HTML)
+        $clean = function ($value) {
+            if (!is_string($value)) {
+                return '';
+            }
+            // html_entity_decode + suppression des caractères corrompus + UTF-8 propre
+            return mb_convert_encoding(html_entity_decode($value, ENT_QUOTES | ENT_HTML5, 'Windows-1252'), 'UTF-8', 'Windows-1252');
+        };
+
+        // Date/heure de connexion dans le fuseau horaire de l'application
+        $now = now()->timezone(config('app.timezone'));
+
+        // =======================
+        // Remplissage du modèle
+        // =======================
+        $contact->customer_id       = $tenant->id;
+        $contact->username          = $this->username;
+        $contact->password          = Hash::make($this->password); // toujours rehaché
+        $contact->CuNumber          = $specificCustomerNumber ?? $this->ccCustomerNumber;
+        $contact->connected_at      = $now;
+
+        // Nom de la compagnie : si l'utilisateur est gestionnaire → on prend celui renvoyé par Servex
+        $contact->CuName = $ccIsManager
+            ? $clean($user_info['CuName'] ?? $tenant->name)
+            : $tenant->name;
+
+        $contact->CcName            = $this->username;
+        $contact->CcIsManager       = $ccIsManager;
+        $contact->CcPortailAdmin    = filter_var($user_info['CcPortailAdmin'] ?? false, FILTER_VALIDATE_BOOLEAN);
+
+        $contact->CcPhoneNumber     = $clean($user_info['CcPhoneNumber'] ?? '');
+        $contact->CcEmail           = $clean($user_info['CcEmail'] ?? '');
+        $contact->email             = $contact->CcEmail; // email de connexion
+
+        $contact->CcPhoneExt           = $clean($user_info['CcPhoneExt'] ?? '');
+        $contact->CcCellNumber      = $clean($user_info['CcCellNumber'] ?? '');
+
+        // Informations de debug / traçabilité Servex (très utiles pour le support)
+        $contact->LoginSuccess      = $clean($user_info['LoginSuccess'] ?? '');
+        $contact->ReasonLogin       = $clean($user_info['ReasonLogin'] ?? '');
+
+        return $contact;
+    }
+
     public function showLoginForm()
     {
         return view('auth.contact.login');

@@ -15,22 +15,29 @@ state([
 ]);
 
 $updateProfileInformation = function () {
-    $user = Auth::guard('contact')->user();
+    $contact = Auth::guard('contact')->user();
 
     $validated = $this->validate([
         'CcName' => ['required', 'string', 'max:255'],
-        'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(Contact::class)->ignore($user->id)],
+        //'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(Contact::class)->ignore($contact->id)],
+        'email' => ['required', 'string', 'lowercase', 'email', 'max:255'],
     ]);
 
-    $user->fill($validated);
+    $contact->fill($validated);
 
-    if ($user->isDirty('email')) {
-        $user->email_verified_at = null;
+    /*
+     * If the contact's email address has been changed we need to
+     * reset the email verification status.
+     *
+     *
+    if ($contact->isDirty('email')) {
+        $contact->email_verified_at = null;
     }
+    */
 
-    $user->save();
+    $contact->save();
 
-    $this->dispatch('profile-updated', name: $user->CcName);
+    $this->dispatch('profile-updated', name: $contact->CcName);
 };
 
 $sendVerification = function () {

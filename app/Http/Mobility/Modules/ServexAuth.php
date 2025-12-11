@@ -6,7 +6,9 @@ use App\Http\Mobility\Commands\CoValidateWebLogin;
 use App\Models\Contact;
 use Illuminate\Support\Facades\Auth;
 use Exception;
+use Illuminate\Support\Facades\Log;
 use App\Servex\Traits\UsesDomainTrait;
+
 class ServexAuth implements IServexAuth
 {
     use UsesDomainTrait;
@@ -29,7 +31,7 @@ class ServexAuth implements IServexAuth
 
 
 
-    public function getContact()
+    public function authenticate()
     {
         try {
             $this->ensureConnection();
@@ -55,8 +57,7 @@ class ServexAuth implements IServexAuth
             }
 
             if (isset($user_info) && isset($user_info['ListeClient'])) {
-                $listeClient = (array) $user_info['ListeClient'];
-
+                $listeClient = $user_info['ListeClient'];
                 $customers = $this->getCustomers($listeClient);
                 dd($response, $customers);
             }
@@ -84,32 +85,38 @@ class ServexAuth implements IServexAuth
         return json_decode($response, true);
     }
 
-    private function getCustomers($fields)
+    private function getCustomers(string $fields): array
     {
-        $body_arr           = explode($this->separator, $fields);
-        array_pop($body_arr);
+        $parts = explode($this->separator, $fields);
 
-        $countFields        = 2;  //Nombre de champs retournés par la fonction (CcCustomerNumber, CcName)
-        //$totalCustomers     = count($body_arr) / $countFields;
-        $customers          = [];
-
-        if (!is_null($body_arr)) {
-            $customers = array_chunk($body_arr, $countFields, false);
-
-            $cust_map = array_map(function ($customer) {
-                return [
-                    'CcCustomerNumber'  => $customer[0],
-                    'CcName'            => $customer[1],
-                ];
-            }, $customers);
-
-            $cust_arr = array();
-            foreach (collect($cust_map)->sortBy('CcName') as $cust) {
-                array_push($cust_arr, $cust);
-            }
-            return $cust_arr;
+        // Supprimer le dernier élément vide s'il existe (causé par le þ final)
+        if (end($parts) === '' || end($parts) === false) {
+            array_pop($parts);
         }
 
+        // Vérifier qu'on a un nombre pair d'éléments (sinon il y a un problème de données)
+        if (count($parts) % 2 !== 0) {
+            // Optionnel : logger une alerte, ou ignorer le dernier élément incomplet
+            Log::warning('Nombre impair de champs dans getCustomers(), dernier ignoré.', ['fields' => $fields]);
+            // On enlève le dernier élément orphelin
+            array_pop($parts);
+        }
+
+        // Regrouper par paires de 2
+        $chunks = array_chunk($parts, 2);
+
+        // Construire le tableau propre
+        $customers = array_map(function ($chunk) {
+            return [
+                'CcCustomerNumber' => trim($chunk[0]),
+                'CcName'           => trim($chunk[1]),
+            ];
+        }, $chunks);
+
+        // Trier par nom (insensible à la casse)
+        usort($customers, function ($a, $b) {
+            return strcasecmp($a['CcName'], $b['CcName']);
+        });
         return $customers;
     }
 

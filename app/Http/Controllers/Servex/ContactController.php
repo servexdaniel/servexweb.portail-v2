@@ -40,7 +40,7 @@ class ContactController extends Controller
         ];
         */
 
-        $contact = (new ServexAuth("", "daniel", $credentials['password']))->getContact();
+        $contact = (new ServexAuth("", "daniel", $credentials['password']))->authenticate();
 
         if($contact != null)
         {

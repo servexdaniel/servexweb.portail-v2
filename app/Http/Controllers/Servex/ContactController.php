@@ -51,10 +51,7 @@ class ContactController extends Controller
 
         // Cas : plusieurs compagnies → on affiche un modal/page de sélection
         if (is_array($result) && $result['type'] === 'choose_company') {
-            // Option 1 : redirection vers une page dédiée
-            // return redirect()->route('contact.choose-company');
-
-            // Option 2 : on reste sur la page de login et on ouvre un modal (recommandé)
+            // On reste sur la page de login et on ouvre un modal pour choisir la compagnie
             return redirect()->back()->with('show_company_modal', [
                 'show'    => true,
                 'type'    => 'choose-company',

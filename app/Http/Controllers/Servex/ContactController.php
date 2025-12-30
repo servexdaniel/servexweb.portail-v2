@@ -45,7 +45,16 @@ class ContactController extends Controller
         $auth = (new ServexAuth("", $credentials['username'], $credentials['password']));
         $result = $auth->authenticate();
 
-        if (is_null($result)) {
+        // On cherche d'abord si c’est un email ou un username
+        $fieldType = filter_var($credentials['username'], FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+
+        if ($fieldType == "email") {
+            $isEmailOrUsernameValid = ($result['contact']['username'] === $credentials['username']);
+        } else {
+            $isEmailOrUsernameValid = true;
+        }
+
+        if( !$isEmailOrUsernameValid || is_null($result)) {
             return back()->withErrors(['username' => 'Identifiants incorrects']);
         }
 
@@ -67,10 +76,6 @@ class ContactController extends Controller
             $remember = $request->filled('remember'); // ou $request->has('remember') ou $request->filled('remember')
             Auth::guard('contact')->login($result['contact'], $remember);
             if (Auth::guard('contact')->check()) {
-
-                $customers = session('servex_customers');
-                dd($result, $customers);
-
                 session()->regenerate();
                 return redirect()->intended(route('contact.dashboard'));
             }

@@ -17,7 +17,7 @@ class ContactController extends Controller
     public function login(Request $request)
     {
         $credentials = $request->validate([
-            'email'    => 'required|email',
+            'username'    => 'required|string',
             'password' => 'required',
         ]);
 
@@ -42,11 +42,11 @@ class ContactController extends Controller
         ];
         */
 
-        $auth = (new ServexAuth("", "daniel", $credentials['password']));
+        $auth = (new ServexAuth("", $credentials['username'], $credentials['password']));
         $result = $auth->authenticate();
 
         if (is_null($result)) {
-            return back()->withErrors(['email' => 'Identifiants incorrects']);
+            return back()->withErrors(['username' => 'Identifiants incorrects']);
         }
 
         // Cas : plusieurs compagnies → on affiche un modal/page de sélection
@@ -79,9 +79,9 @@ class ContactController extends Controller
             }
         }
         return back()->withErrors([
-            'email' => 'The provided credentials do not match our records.',
+            'username' => 'The provided credentials do not match our records.',
             //'login' => 'Les identifiants fournis sont incorrects.',
-        ])->onlyInput('email');
+        ])->onlyInput('username');
     }
 
 

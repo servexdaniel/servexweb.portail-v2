@@ -7,6 +7,7 @@ use App\Models\Contact;
 use Illuminate\Support\Facades\Log;
 use App\Servex\Traits\UsesDomainTrait;
 use App\Http\Mobility\ServexMobilityClient;
+use App\Http\Mobility\Commands\CoUseNewDataX;
 use App\Http\Mobility\Commands\SrCustomerInfo;
 use App\Http\Mobility\Interfaces\IServexSynchro;
 use App\Http\Mobility\Commands\CoGetWindowsServiceVersion;
@@ -99,6 +100,33 @@ class ServexSynchro implements IServexSynchro
             $client->setSetting('SERVICE_VERSION', $response);
             $this->servexMobilityClient->disconnect();
             return true;
+        } catch (\Exception $e) {
+            throw new Exception($e->getMessage());
+        }
+    }
+
+    function CoUseNewDataX()
+    {
+        try {
+            //Activer la connexion
+            if (!$this->servexMobilityClient->connect()) throw new Exception("CoUseNewDataX : Connexion impossible");
+            //Début de la transaction via le rabbitmq
+            $this->servexMobilityClient->beginTransaction();
+            //Construction des paramètres de cette commande
+            $commandHdr = (new CoUseNewDataX())->getParams($this->messageId);
+            //Envoyer le message
+            $this->servexMobilityClient->send($commandHdr->message);
+
+            $this->servexMobilityClient->commitTransaction();
+
+            $response = $this->servexMobilityClient->read();
+
+            $isUseNewDataX  = ($response == "-1") ? true : false;
+
+            $client = $this->getCurrentTenant();
+            $client->setSetting('isUseNewDataX', $isUseNewDataX);
+
+            $this->servexMobilityClient->disconnect();
         } catch (\Exception $e) {
             throw new Exception($e->getMessage());
         }

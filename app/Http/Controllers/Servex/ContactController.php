@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Servex;
 use App\Models\Contact;
 use Illuminate\Http\Request;
 use App\Jobs\SyncCustomerInfo;
+use App\Jobs\SyncDefaultConfig;
+use Illuminate\Support\Facades\Bus;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -202,6 +204,17 @@ class ContactController extends Controller
 
             (new ServexSynchro())->syncWindowsServiceVersion();
             SyncCustomerInfo::dispatchAfterResponse($contact->CuNumber, $contact->id);
+
+            //Job en arrière plan
+            Bus::chain([
+                new SyncDefaultConfig(),
+
+            ])
+                ->catch(function (Throwable $e) {
+                    // A job within the chain has failed...
+                    dd($e);
+                })
+                ->dispatch();
         }
     }
 

@@ -73,4 +73,9 @@ trait UsesDomainTrait
         }
         return $tenant;
     }
+
+    function getCuNumber()
+    {
+        return Auth::guard('contact')->user()->CuNumber;
+    }
 }

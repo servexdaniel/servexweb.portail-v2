@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Validation\Rules\Password;
 use \App\Http\Mobility\Modules\ServexAuth;
 use App\Servex\Traits\UsesDomainTrait;
+use App\Http\Mobility\Modules\ServexSynchro;
 
 class ContactController extends Controller
 {
@@ -197,6 +198,8 @@ class ContactController extends Controller
             session()->regenerate();
             $contact->sessionid = Session::getId();
             $contact->save();
+
+            (new ServexSynchro())->getCustomerInfo($contact->CuNumber, $contact->id);
         }
     }
 

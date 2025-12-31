@@ -3,8 +3,10 @@
 namespace App\Http\Mobility\Modules;
 
 use Exception;
+use App\Models\Code;
 use App\Models\Contact;
 use Illuminate\Support\Facades\Log;
+use App\Http\Mobility\Commands\SrCode;
 use App\Servex\Traits\UsesDomainTrait;
 use App\Http\Mobility\Commands\SrWebConfig;
 use App\Http\Mobility\ServexMobilityClient;
@@ -195,6 +197,67 @@ class ServexSynchro implements IServexSynchro
             }
             $this->servexMobilityClient->disconnect();
             return $isOk;
+        } catch (\Exception $e) {
+            throw new Exception($e->getMessage());
+        }
+    }
+
+    public function syncCodes(): Collection
+    {
+        try {
+            //Activer la connexion
+            if (!$this->servexMobilityClient->connect()) throw new Exception("syncCodes : Connexion impossible");
+            //Début de la transaction via le rabbitmq
+            $this->servexMobilityClient->beginTransaction();
+
+            $commandHdr = (new SrCode())->getParams($this->messageId);
+
+            //Envoyer le message
+            $this->servexMobilityClient->send($commandHdr->message);
+
+            $this->servexMobilityClient->commitTransaction();
+
+            $response = $this->servexMobilityClient->read();
+
+            $keys           = explode($this->separator, $commandHdr->fields);
+            array_pop($keys);
+            $values           = explode($this->separator, $response);
+            array_pop($values);
+
+            $countFields            = sizeof($keys);
+            if ($countFields > 0) {
+
+                $codes_arr    = collect(array_chunk($values, $countFields, false));
+
+                //Convertir en un taleau de clé/valeur
+                $codes = array();
+                if (count($codes_arr) > 0) {
+                    foreach ($codes_arr as $code) {
+                        array_push(
+                            $codes,
+                            array_combine($keys, $code)
+                        );
+                    }
+                }
+
+                $client = $this->getCurrentTenant();
+                Code::where('customer_id', $client->id)->delete();
+
+                foreach ($codes as $code) {
+                    try {
+                        Code::updateOrCreate([
+                            'customer_id'       => $client->id,
+                            'CoNumber'          => $code['CoNumber'],
+                            'CoDesc'            => $code['CoDesc']
+                        ]);
+                    } catch (\Exception $e) {
+                        throw new Exception($e->getMessage());
+                    }
+                }
+            }
+            $dataset = Code::where('customer_id', $client->id)->get();
+            $this->servexMobilityClient->disconnect();
+            return $dataset;
         } catch (\Exception $e) {
             throw new Exception($e->getMessage());
         }

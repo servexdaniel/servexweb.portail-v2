@@ -32,9 +32,9 @@ class SyncDefaultConfig implements ShouldQueue
         Log::info("----> Job executed syncCodes ");
         (new ServexSynchro())->syncTravels();
         Log::info("----> Job executed syncTravels ");
-        /*
         (new ServexSynchro())->syncLabours();
         Log::info("----> Job executed syncLabors ");
+        /*
         (new ServexSynchro())->syncPriorities();
         Log::info("----> Job executed syncPriorities");
         (new ServexSynchro())->syncTechnicians();

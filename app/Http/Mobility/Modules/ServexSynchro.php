@@ -4,11 +4,13 @@ namespace App\Http\Mobility\Modules;
 
 use Exception;
 use App\Models\Code;
+use App\Models\Labour;
 use App\Models\Travel;
 use App\Models\Contact;
 use Illuminate\Support\Facades\Log;
 use App\Http\Mobility\Commands\SrCode;
 use App\Servex\Traits\UsesDomainTrait;
+use App\Http\Mobility\Commands\SrLabour;
 use App\Http\Mobility\Commands\SrTravel;
 use App\Http\Mobility\Commands\SrWebConfig;
 use App\Http\Mobility\ServexMobilityClient;
@@ -319,6 +321,67 @@ class ServexSynchro implements IServexSynchro
                 }
             }
             $dataset = Travel::where('customer_id', $client->id)->get();
+            $this->servexMobilityClient->disconnect();
+            return $dataset;
+        } catch (\Exception $e) {
+            throw new Exception($e->getMessage());
+        }
+    }
+
+    public function syncLabours()
+    {
+        try {
+            //Activer la connexion
+            if (!$this->servexMobilityClient->connect()) throw new Exception("syncLabours : Connexion impossible");
+            //Début de la transaction via le rabbitmq
+            $this->servexMobilityClient->beginTransaction();
+
+            $commandHdr = (new SrLabour())->getParams($this->messageId);
+
+            //Envoyer le message
+            $this->servexMobilityClient->send($commandHdr->message);
+
+            $this->servexMobilityClient->commitTransaction();
+
+            $response = $this->servexMobilityClient->read();
+
+            $keys           = explode($this->separator, $commandHdr->fields);
+            array_pop($keys);
+            $values           = explode($this->separator, $response);
+            array_pop($values);
+
+            $countFields            = sizeof($keys);
+            if ($countFields > 0) {
+
+                $labours_arr    = collect(array_chunk($values, $countFields, false));
+
+                //Convertir en un taleau de clé/valeur
+                $labours = array();
+                if (count($labours_arr) > 0) {
+                    foreach ($labours_arr as $labour) {
+                        array_push(
+                            $labours,
+                            array_combine($keys, $labour)
+                        );
+                    }
+                }
+
+                $client = $this->getCurrentTenant();
+                Labour::where('customer_id', $client->id)->delete();
+
+                foreach ($labours as $labour) {
+                    try {
+                        Labour::updateOrCreate([
+                            'customer_id'       => $client->id,
+                            'LaNumber'          => $labour['LaNumber'],
+                            'LaDesc'            => $labour['LaDesc']
+                        ]);
+                    } catch (\Exception $e) {
+                        throw new Exception($e->getMessage());
+                    }
+                }
+            }
+            $dataset = Labour::where('customer_id', $client->id)->get();
             $this->servexMobilityClient->disconnect();
             return $dataset;
         } catch (\Exception $e) {

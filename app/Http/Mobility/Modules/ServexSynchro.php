@@ -4,10 +4,12 @@ namespace App\Http\Mobility\Modules;
 
 use Exception;
 use App\Models\Code;
+use App\Models\Travel;
 use App\Models\Contact;
 use Illuminate\Support\Facades\Log;
 use App\Http\Mobility\Commands\SrCode;
 use App\Servex\Traits\UsesDomainTrait;
+use App\Http\Mobility\Commands\SrTravel;
 use App\Http\Mobility\Commands\SrWebConfig;
 use App\Http\Mobility\ServexMobilityClient;
 use App\Http\Mobility\Commands\CoUseNewDataX;
@@ -202,7 +204,7 @@ class ServexSynchro implements IServexSynchro
         }
     }
 
-    public function syncCodes(): Collection
+    public function syncCodes()
     {
         try {
             //Activer la connexion
@@ -256,6 +258,67 @@ class ServexSynchro implements IServexSynchro
                 }
             }
             $dataset = Code::where('customer_id', $client->id)->get();
+            $this->servexMobilityClient->disconnect();
+            return $dataset;
+        } catch (\Exception $e) {
+            throw new Exception($e->getMessage());
+        }
+    }
+
+    public function syncTravels()
+    {
+        try {
+            //Activer la connexion
+            if (!$this->servexMobilityClient->connect()) throw new Exception("syncTravels : Connexion impossible");
+            //Début de la transaction via le rabbitmq
+            $this->servexMobilityClient->beginTransaction();
+
+            $commandHdr = (new SrTravel())->getParams($this->messageId);
+
+            //Envoyer le message
+            $this->servexMobilityClient->send($commandHdr->message);
+
+            $this->servexMobilityClient->commitTransaction();
+
+            $response = $this->servexMobilityClient->read();
+
+            $keys           = explode($this->separator, $commandHdr->fields);
+            array_pop($keys);
+            $values           = explode($this->separator, $response);
+            array_pop($values);
+
+            $countFields            = sizeof($keys);
+            if ($countFields > 0) {
+
+                $travels_arr    = collect(array_chunk($values, $countFields, false));
+
+                //Convertir en un taleau de clé/valeur
+                $travels = array();
+                if (count($travels_arr) > 0) {
+                    foreach ($travels_arr as $travel) {
+                        array_push(
+                            $travels,
+                            array_combine($keys, $travel)
+                        );
+                    }
+                }
+
+                $client = $this->getCurrentTenant();
+                Travel::where('customer_id', $client->id)->delete();
+
+                foreach ($travels as $travel) {
+                    try {
+                        Travel::updateOrCreate([
+                            'customer_id'       => $client->id,
+                            'TrNumber'          => $travel['TrNumber'],
+                            'TrDesc'            => $travel['TrDesc']
+                        ]);
+                    } catch (\Exception $e) {
+                        throw new Exception($e->getMessage());
+                    }
+                }
+            }
+            $dataset = Travel::where('customer_id', $client->id)->get();
             $this->servexMobilityClient->disconnect();
             return $dataset;
         } catch (\Exception $e) {

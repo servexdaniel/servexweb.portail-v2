@@ -53,7 +53,7 @@ class ServexAuth implements IServexAuth
 
             $user_info = $response['data'];
             // Échec de login
-            if (!$user_info || ($user_info['LoginSuccess'] !== "SUCCES" && !isset($user_info['ListeClient']))) {
+            if (!$user_info || ($user_info['LoginSuccess'] !== "SUCCES" && !isset($user_info['ListeClient']) && !$user_info['CcIsManager'])) {
                 return null;
             }
 
@@ -171,17 +171,15 @@ class ServexAuth implements IServexAuth
         $contact->password    = \Hash::make($this->password);
         $contact->CuNumber    = $this->ccCustomerNumber;
         $contact->connected_at = $now->format('Y-m-d H:i:s');
-
-        $contact->CuName      = $ccIsManager ? utf8_decode(utf8_encode($user_info['CuName'])) : $client->name;
+        $contact->CuName = $ccIsManager ? $client->name : utf8_encode(html_entity_decode(utf8_decode($user_info['CuName'])));
         $contact->CcName      = $this->username;
         $contact->CcIsManager = $ccIsManager;
         $contact->CcPortailAdmin = isset($user_info['CcPortailAdmin']) ? filter_var($user_info['CcPortailAdmin'], FILTER_VALIDATE_BOOLEAN) : false;
-        $contact->CcPhoneNumber      = isset($user_info['CcPhoneNumber']) ? html_entity_decode(utf8_decode($user_info['CcPhoneNumber'])) : '';
-        $contact->CcEmail      = isset($user_info['CcEmail']) ? utf8_encode(html_entity_decode(utf8_decode($user_info['CcEmail']))) : "";
-        $contact->email      = isset($user_info['CcEmail']) ? utf8_encode(html_entity_decode(utf8_decode($user_info['CcEmail']))) : "";
-
-        $contact->CcPhoneExt   = isset($user_info['CcPhoneExt']) ? utf8_encode(html_entity_decode(utf8_decode($user_info['CcPhoneExt']))) : "";
-        $contact->CcCellNumber = isset($user_info['CcCellNumber']) ? utf8_encode(html_entity_decode(utf8_decode($user_info['CcCellNumber']))) : "";
+        $contact->CcPhoneNumber      = isset($user_info['CcPhoneNumber']) ? html_entity_decode(utf8_decode($user_info['CcPhoneNumber'])) : null;
+        $contact->CcEmail      = isset($user_info['CcEmail']) ? utf8_encode(html_entity_decode(utf8_decode($user_info['CcEmail']))) : null;
+        $contact->email      = isset($user_info['CcEmail']) ? utf8_encode(html_entity_decode(utf8_decode($user_info['CcEmail']))) : null;
+        $contact->CcPhoneExt   = isset($user_info['CcPhoneExt']) ? utf8_encode(html_entity_decode(utf8_decode($user_info['CcPhoneExt']))) : null;
+        $contact->CcCellNumber = isset($user_info['CcCellNumber']) ? utf8_encode(html_entity_decode(utf8_decode($user_info['CcCellNumber']))) : null;
 
         $contact->LoginSuccess = html_entity_decode(utf8_decode($user_info['LoginSuccess']));
         $contact->ReasonLogin = html_entity_decode(utf8_decode($user_info['ReasonLogin']));

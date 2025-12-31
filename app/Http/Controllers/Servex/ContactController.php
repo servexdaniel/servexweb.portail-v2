@@ -48,13 +48,7 @@ class ContactController extends Controller
         // On cherche d'abord si c’est un email ou un username
         $fieldType = filter_var($credentials['username'], FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
 
-        if ($fieldType == "email") {
-            $isEmailOrUsernameValid = ($result['contact']['username'] === $credentials['username']);
-        } else {
-            $isEmailOrUsernameValid = true;
-        }
-
-        if( !$isEmailOrUsernameValid || is_null($result)) {
+        if( is_null($result)) {
             return back()->withErrors(['username' => 'Identifiants incorrects']);
         }
 

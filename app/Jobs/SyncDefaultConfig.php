@@ -26,9 +26,9 @@ class SyncDefaultConfig implements ShouldQueue
     {
         (new ServexSynchro())->CoUseNewDataX();
         Log::info("----> Handle Job syncDefaultConfig::CoUseNewDataX");
-        /*
         (new ServexSynchro())->syncWebConfig();
-        Log::info("----> Job executed syncDefaultConfig ");
+        Log::info("----> Job executed syncDefaultConfig::syncWebConfig");
+        /*
         (new ServexSynchro())->syncCodes();
         Log::info("----> Job executed syncCodes ");
         (new ServexSynchro())->syncTravels();

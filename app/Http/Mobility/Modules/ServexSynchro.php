@@ -6,6 +6,7 @@ use Exception;
 use App\Models\Contact;
 use Illuminate\Support\Facades\Log;
 use App\Servex\Traits\UsesDomainTrait;
+use App\Http\Mobility\Commands\SrWebConfig;
 use App\Http\Mobility\ServexMobilityClient;
 use App\Http\Mobility\Commands\CoUseNewDataX;
 use App\Http\Mobility\Commands\SrCustomerInfo;
@@ -127,6 +128,84 @@ class ServexSynchro implements IServexSynchro
             $client->setSetting('isUseNewDataX', $isUseNewDataX);
 
             $this->servexMobilityClient->disconnect();
+        } catch (\Exception $e) {
+            throw new Exception($e->getMessage());
+        }
+    }
+
+    public function syncWebConfig()
+    {
+        $isOk = false;
+        try {
+            //Activer la connexion
+            if (!$this->servexMobilityClient->connect()) throw new Exception("syncWebConfig : Connexion impossible");
+            //Début de la transaction via le rabbitmq
+            $this->servexMobilityClient->beginTransaction();
+
+            $commandHdr = (new SrWebConfig())->getParams($this->messageId);
+
+            //Envoyer le message
+            $this->servexMobilityClient->send($commandHdr->message);
+
+            $this->servexMobilityClient->commitTransaction();
+
+            $response = $this->servexMobilityClient->read();
+
+            $webconfig           = explode($this->separator, $response);
+            array_pop($webconfig);
+
+            $client = $this->getCurrentTenant();
+
+            /*
+            $client->deleteSetting('CPA_SUBMISSION');
+            $client->deleteSetting('CPA_SUBMISSION_ACCEPTED');
+            $client->deleteSetting('CPA_SUBMISSION_REJECTED');
+            $client->deleteSetting('CPA_WEB');
+            $client->deleteSetting('CPA_CANCEL_WEB');
+            $client->deleteSetting('CPA_CALL_MODIFIED');
+            $client->deleteSetting('DEFAULT_TECH_WEB');
+            $client->deleteSetting('DEFAULT_DISPATCH_WEB');
+            */
+
+            $client->deleteSettings(['CPA_SUBMISSION', 'CPA_SUBMISSION_ACCEPTED', 'CPA_SUBMISSION_REJECTED', 'CPA_WEB', 'CPA_CANCEL_WEB', 'CPA_CALL_MODIFIED', 'DEFAULT_TECH_WEB', 'DEFAULT_DISPATCH_WEB']);
+
+            if (count($webconfig) > 0) {
+                $isOk = true;
+                if (array_key_exists('0', $webconfig)) {
+                    $defaultCPA = $webconfig[0];
+                    $client->setSetting('CPA_WEB', $defaultCPA);
+                }
+                if (array_key_exists('1', $webconfig)) {
+                    $defaultCancelCPA = $webconfig[1];
+                    $client->setSetting('CPA_CANCEL_WEB', $defaultCancelCPA);
+                }
+                if (array_key_exists('2', $webconfig)) {
+                    $defaultTech = $webconfig[2];
+                    $client->setSetting('DEFAULT_TECH_WEB', $defaultTech);
+                }
+                if (array_key_exists('3', $webconfig)) {
+                    $defaultDispatch = $webconfig[3];
+                    $client->setSetting('DEFAULT_DISPATCH_WEB', $defaultDispatch);
+                }
+                if (array_key_exists('4', $webconfig)) {
+                    $cpaCallModified = $webconfig[4];
+                    $client->setSetting('CPA_CALL_MODIFIED', $cpaCallModified);
+                }
+                if (array_key_exists('5', $webconfig)) {
+                    $cpaSubmission = $webconfig[5];
+                    $client->setSetting('CPA_SUBMISSION', $cpaSubmission);
+                }
+                if (array_key_exists('6', $webconfig)) {
+                    $cpaSubmissionAccepted = $webconfig[6];
+                    $client->setSetting('CPA_SUBMISSION_ACCEPTED', $cpaSubmissionAccepted);
+                }
+                if (array_key_exists('7', $webconfig)) {
+                    $cpaSubmissionRejected = $webconfig[7];
+                    $client->setSetting('CPA_SUBMISSION_REJECTED', $cpaSubmissionRejected);
+                }
+            }
+            $this->servexMobilityClient->disconnect();
+            return $isOk;
         } catch (\Exception $e) {
             throw new Exception($e->getMessage());
         }

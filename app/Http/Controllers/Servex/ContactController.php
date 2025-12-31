@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Servex;
 
+use Throwable;
 use App\Models\Contact;
 use Illuminate\Http\Request;
 use App\Jobs\SyncCustomerInfo;

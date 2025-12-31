@@ -36,6 +36,15 @@ trait UsesTenantSettingsTrait
         $this->setCache();
     }
 
+    // delete multiple settings at once
+    public function deleteSettings($data = [])
+    {
+        foreach ($data as $name => $value) {
+            $this->deleteSetting($value);
+        }
+        $this->setCache();
+    }
+
     // create-update multiple settings at once
     public function setSettings($data = [])
     {

@@ -8,6 +8,7 @@ use App\Models\Labour;
 use App\Models\Travel;
 use App\Models\Contact;
 use App\Models\Priority;
+use App\Models\Technician;
 use Illuminate\Support\Facades\Log;
 use App\Http\Mobility\Commands\SrCode;
 use App\Servex\Traits\UsesDomainTrait;
@@ -16,6 +17,7 @@ use App\Http\Mobility\Commands\SrTravel;
 use App\Http\Mobility\Commands\SrPriority;
 use App\Http\Mobility\Commands\SrWebConfig;
 use App\Http\Mobility\ServexMobilityClient;
+use App\Http\Mobility\Commands\SrTechnician;
 use App\Http\Mobility\Commands\CoUseNewDataX;
 use App\Http\Mobility\Commands\SrCustomerInfo;
 use App\Http\Mobility\Interfaces\IServexSynchro;
@@ -391,7 +393,7 @@ class ServexSynchro implements IServexSynchro
         }
     }
 
-    public function syncPriorities(): Collection
+    public function syncPriorities()
     {
         try {
             //Activer la connexion
@@ -445,6 +447,67 @@ class ServexSynchro implements IServexSynchro
                 }
             }
             $dataset = Priority::where('customer_id', $client->id)->get();
+            $this->servexMobilityClient->disconnect();
+            return $dataset;
+        } catch (\Exception $e) {
+            throw new Exception($e->getMessage());
+        }
+    }
+
+    public function syncTechnicians()
+    {
+        try {
+            //Activer la connexion
+            if (!$this->servexMobilityClient->connect()) throw new Exception("syncTechnicians : Connexion impossible");
+            //Début de la transaction via le rabbitmq
+            $this->servexMobilityClient->beginTransaction();
+
+            $commandHdr = (new SrTechnician())->getParams($this->messageId);
+
+            //Envoyer le message
+            $this->servexMobilityClient->send($commandHdr->message);
+
+            $this->servexMobilityClient->commitTransaction();
+
+            $response = $this->servexMobilityClient->read();
+
+            $keys           = explode($this->separator, $commandHdr->fields);
+            array_pop($keys);
+            $values           = explode($this->separator, $response);
+            array_pop($values);
+
+            $countFields            = sizeof($keys);
+            if ($countFields > 0) {
+
+                $technicians_arr    = collect(array_chunk($values, $countFields, false));
+
+                //Convertir en un taleau de clé/valeur
+                $technicians = array();
+                if (count($technicians_arr) > 0) {
+                    foreach ($technicians_arr as $tech) {
+                        array_push(
+                            $technicians,
+                            array_combine($keys, $tech)
+                        );
+                    }
+                }
+
+                $client = $this->getCurrentTenant();
+                Technician::where('customer_id', $client->id)->delete();
+
+                foreach ($technicians as $tech) {
+                    try {
+                        Technician::updateOrCreate([
+                            'customer_id'       => $client->id,
+                            'TeNumber'          => $tech['TeNumber'],
+                            'TeName'            => $tech['TeName']
+                        ]);
+                    } catch (\Exception $e) {
+                        throw new Exception($e->getMessage());
+                    }
+                }
+            }
+            $dataset = Technician::where('customer_id', $client->id)->get();
             $this->servexMobilityClient->disconnect();
             return $dataset;
         } catch (\Exception $e) {

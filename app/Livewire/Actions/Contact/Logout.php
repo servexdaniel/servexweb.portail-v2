@@ -41,8 +41,6 @@ class Logout
         //Enlever la session de la base de données
         DB::table('sessions')->where('id', $contact->sessionid)->delete();
 
-        //Attachment::Where('contact_id', $contact_id)->delete();
-
         //Supprimer les informations du contact
         $contact->delete();
 

@@ -67,16 +67,8 @@ class ContactController extends Controller
 
         // Cas : un seul client → connexion directe
         if (is_array($result) && $result['type'] === 'single_company') {
-            // Avec la case "Se souvenir de moi" cochée ou non
-            $remember = $request->filled('remember'); // ou $request->has('remember') ou $request->filled('remember')
-            Auth::guard('contact')->login($result['contact'], $remember);
-            if (Auth::guard('contact')->check()) {
-                session()->regenerate();
-                $contact = $result['contact'];
-                $contact->sessionid = Session::getId();
-                $contact->save();
-                return redirect()->intended(route('contact.dashboard'));
-            }
+            $this->loginContact($request, $result['contact']);
+            return redirect()->intended(route('contact.dashboard'));
         }
         return back()->withErrors([
             'username' => 'The provided credentials do not match our records.',
@@ -117,16 +109,8 @@ class ContactController extends Controller
         $result = $auth->authenticate();
 
         if (is_array($result) && $result['type'] === 'single_company') {
-            // Avec la case "Se souvenir de moi" cochée ou non
-            $remember = $request->filled('remember'); // ou $request->has('remember') ou $request->filled('remember')
-            Auth::guard('contact')->login($result['contact'], $remember);
-            if (Auth::guard('contact')->check()) {
-                session()->regenerate();
-                $contact = $result['contact'];
-                $contact->sessionid = Session::getId();
-                $contact->save();
-                return redirect()->intended(route('contact.dashboard'));
-            }
+            $this->loginContact($request, $result['contact']);
+            return redirect()->intended(route('contact.dashboard'));
         }
         return back()->withErrors(['error' => 'Erreur lors de la connexion']);
     }
@@ -196,6 +180,24 @@ class ContactController extends Controller
         $contact->ReasonLogin       = $clean($user_info['ReasonLogin'] ?? '');
 
         return $contact;
+    }
+
+    /**
+     * Connecte un contact avec le guard 'contact', régénère la session et met à jour le sessionid.
+     *
+     * @param Request $request
+     * @param Contact $contact
+     * @return void
+     */
+    private function loginContact(Request $request, Contact $contact): void
+    {
+        $remember = $request->filled('remember');
+        Auth::guard('contact')->login($contact, $remember);
+        if (Auth::guard('contact')->check()) {
+            session()->regenerate();
+            $contact->sessionid = Session::getId();
+            $contact->save();
+        }
     }
 
     public function showLoginForm()

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Contact;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Validation\Rules\Password;
 use \App\Http\Mobility\Modules\ServexAuth;
 use App\Servex\Traits\UsesDomainTrait;
@@ -71,6 +72,9 @@ class ContactController extends Controller
             Auth::guard('contact')->login($result['contact'], $remember);
             if (Auth::guard('contact')->check()) {
                 session()->regenerate();
+                $contact = $result['contact'];
+                $contact->sessionid = Session::getId();
+                $contact->save();
                 return redirect()->intended(route('contact.dashboard'));
             }
         }
@@ -118,6 +122,9 @@ class ContactController extends Controller
             Auth::guard('contact')->login($result['contact'], $remember);
             if (Auth::guard('contact')->check()) {
                 session()->regenerate();
+                $contact = $result['contact'];
+                $contact->sessionid = Session::getId();
+                $contact->save();
                 return redirect()->intended(route('contact.dashboard'));
             }
         }

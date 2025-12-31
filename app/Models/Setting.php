@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Customer;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
@@ -23,6 +24,6 @@ class Setting extends Model
 
     public function tenant()
     {
-        return $this->belongsTo('App\Models\Customer', 'id');
+        return $this->belongsTo(Customer::class, 'id');
     }
 }

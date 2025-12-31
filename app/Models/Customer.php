@@ -6,6 +6,7 @@ use Spatie\Multitenancy\Models\Tenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Servex\Traits\UsesTenantSettingsTrait;
 use App\Models\Label;
+use App\Models\Setting;
 
 class Customer extends Tenant
 {
@@ -24,6 +25,11 @@ class Customer extends Tenant
         'remoteServer',
         'remoteServerPort'
     ];
+
+    public function settings()
+    {
+        return $this->hasMany(Setting::class,'customer_id');
+    }
 
     public function menuLabels()
     {

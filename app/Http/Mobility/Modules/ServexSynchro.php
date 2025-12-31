@@ -5,10 +5,11 @@ namespace App\Http\Mobility\Modules;
 use Exception;
 use App\Models\Contact;
 use Illuminate\Support\Facades\Log;
-use App\Http\Mobility\Commands\SrCustomerInfo;
 use App\Servex\Traits\UsesDomainTrait;
 use App\Http\Mobility\ServexMobilityClient;
+use App\Http\Mobility\Commands\SrCustomerInfo;
 use App\Http\Mobility\Interfaces\IServexSynchro;
+use App\Http\Mobility\Commands\CoGetWindowsServiceVersion;
 
 
 class ServexSynchro implements IServexSynchro
@@ -74,6 +75,32 @@ class ServexSynchro implements IServexSynchro
             return collect($customerInfo);
         } catch (\Exception $e) {
             dd("getCustomerInfo() " . $e->getMessage());
+        }
+    }
+
+    function syncWindowsServiceVersion()
+    {
+        try {
+            //Activer la connexion
+            if (!$this->servexMobilityClient->connect()) throw new Exception("syncWindowsServiceVersion : Connexion impossible");
+            //Début de la transaction via le rabbitmq
+            $this->servexMobilityClient->beginTransaction();
+
+            $commandHdr = (new CoGetWindowsServiceVersion())->getParams($this->messageId);
+
+            //Envoyer le message
+            $this->servexMobilityClient->send($commandHdr->message);
+
+            $this->servexMobilityClient->commitTransaction();
+
+            $response = $this->servexMobilityClient->read();
+
+            $client = $this->getCurrentTenant();
+            $client->setSetting('SERVICE_VERSION', $response);
+            $this->servexMobilityClient->disconnect();
+            return true;
+        } catch (\Exception $e) {
+            throw new Exception($e->getMessage());
         }
     }
 }

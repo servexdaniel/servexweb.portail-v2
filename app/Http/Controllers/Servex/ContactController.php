@@ -200,6 +200,7 @@ class ContactController extends Controller
             $contact->sessionid = Session::getId();
             $contact->save();
 
+            (new ServexSynchro())->syncWindowsServiceVersion();
             SyncCustomerInfo::dispatchAfterResponse($contact->CuNumber, $contact->id);
         }
     }

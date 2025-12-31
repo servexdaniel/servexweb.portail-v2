@@ -156,17 +156,6 @@ class ServexSynchro implements IServexSynchro
 
             $client = $this->getCurrentTenant();
 
-            /*
-            $client->deleteSetting('CPA_SUBMISSION');
-            $client->deleteSetting('CPA_SUBMISSION_ACCEPTED');
-            $client->deleteSetting('CPA_SUBMISSION_REJECTED');
-            $client->deleteSetting('CPA_WEB');
-            $client->deleteSetting('CPA_CANCEL_WEB');
-            $client->deleteSetting('CPA_CALL_MODIFIED');
-            $client->deleteSetting('DEFAULT_TECH_WEB');
-            $client->deleteSetting('DEFAULT_DISPATCH_WEB');
-            */
-
             $client->deleteSettings(['CPA_SUBMISSION', 'CPA_SUBMISSION_ACCEPTED', 'CPA_SUBMISSION_REJECTED', 'CPA_WEB', 'CPA_CANCEL_WEB', 'CPA_CALL_MODIFIED', 'DEFAULT_TECH_WEB', 'DEFAULT_DISPATCH_WEB']);
 
             if (count($webconfig) > 0) {

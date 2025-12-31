@@ -5,6 +5,7 @@ namespace App\Jobs;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
+use App\Http\Mobility\Modules\ServexSynchro;
 
 class SyncCustomerInfo implements ShouldQueue
 {
@@ -29,5 +30,6 @@ class SyncCustomerInfo implements ShouldQueue
     public function handle(): void
     {
         (new ServexSynchro())->getCustomerInfo($this->cunumber, $this->contactId);
+        Log::info("----> Handle Job SyncCustomerInfo ".$this->cunumber." for contact ID ".$this->contactId);
     }
 }

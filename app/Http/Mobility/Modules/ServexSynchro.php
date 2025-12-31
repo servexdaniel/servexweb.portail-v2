@@ -2,13 +2,13 @@
 
 namespace App\Http\Mobility\Modules;
 
-use Illuminate\Support\Facades\Log;
-use App\Http\Mobility\Interfaces\IServexSynchro;
-use App\Http\Mobility\ServexMobilityClient;
-use App\Http\Mobility\Commands\SrCustomerInfo;
 use Exception;
 use App\Models\Contact;
+use Illuminate\Support\Facades\Log;
+use App\Http\Mobility\Commands\SrCustomerInfo;
 use App\Servex\Traits\UsesDomainTrait;
+use App\Http\Mobility\ServexMobilityClient;
+use App\Http\Mobility\Interfaces\IServexSynchro;
 
 
 class ServexSynchro implements IServexSynchro
@@ -27,7 +27,7 @@ class ServexSynchro implements IServexSynchro
 
     public function getCustomerInfo($cunumber, $contactId)
     {
-        Log::info("----> Module ServexSynchro : cuNumber=" . $cunumber . "  contactId=" . $contactId);
+        Log::info("----> Module getCustomerInfo : cuNumber=" . $cunumber . "  contactId=" . $contactId);
 
         $customerInfo = array();
         try {
@@ -40,7 +40,6 @@ class ServexSynchro implements IServexSynchro
                 'cunumber'     => $cunumber,
                 'contactId'    => $contactId
             ]);
-
 
 
             //Envoyer le message
@@ -61,6 +60,16 @@ class ServexSynchro implements IServexSynchro
             if (!empty($values)) {
                 $customerInfo = array_combine($keys, $values);
             }
+
+            $client = $this->getCurrentTenant();
+            Contact::where('id', $contactId)
+                ->where('CuNumber', $cunumber)
+                ->where('customer_id', $client->id)
+                ->update([
+                    'CuAddress' => $customerInfo['CuAddress'],
+                    'CuCity'   => $customerInfo['CuCity'],
+                    'CuPostalCode' => $customerInfo['CuPostalCode']
+                ]);
 
             return collect($customerInfo);
         } catch (\Exception $e) {

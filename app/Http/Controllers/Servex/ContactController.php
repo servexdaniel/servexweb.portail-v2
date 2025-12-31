@@ -2,15 +2,16 @@
 
 namespace App\Http\Controllers\Servex;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Contact;
+use Illuminate\Http\Request;
+use App\Jobs\SyncCustomerInfo;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use App\Servex\Traits\UsesDomainTrait;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Validation\Rules\Password;
 use \App\Http\Mobility\Modules\ServexAuth;
-use App\Servex\Traits\UsesDomainTrait;
 use App\Http\Mobility\Modules\ServexSynchro;
 
 class ContactController extends Controller
@@ -199,7 +200,7 @@ class ContactController extends Controller
             $contact->sessionid = Session::getId();
             $contact->save();
 
-            (new ServexSynchro())->getCustomerInfo($contact->CuNumber, $contact->id);
+            SyncCustomerInfo::dispatchAfterResponse($contact->CuNumber, $contact->id);
         }
     }
 

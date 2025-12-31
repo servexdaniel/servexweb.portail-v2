@@ -1,5 +1,5 @@
 <?php
-namespace App\Http\Mobility;
+namespace App\Http\Mobility\Commands;
 
 use Stomp\Transport\Message;
 use App\Http\Mobility\Interfaces\IServexCommand;
@@ -15,7 +15,6 @@ class SrCustomerInfo implements IServexCommand
         //$cunumber = getCuNumber();
         $contactId   =  (array_key_exists("contactId", $criteria)) ? $criteria['contactId'] : 0;
         $cunumber   =  (array_key_exists("cunumber", $criteria)) ? $criteria['cunumber'] : 0;
-        dd("cunumber",$cunumber, "contactId",$contactId);
         $fields   = "CuNumberþCuNameþCuCareOfþCuAddressþCuCityþCuISOCountryCodeþCuPostalCodeþCuActiveþCuPhoneNumber1þ";
 
         //Frame à envoyer via rabbitmq

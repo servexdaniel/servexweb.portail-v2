@@ -90,15 +90,14 @@ class ContactController extends Controller
         // Cas : un seul client → connexion directe
         if (is_array($result) && $result['type'] === 'single_company') {
             $this->loginContact($request, $result['contact']);
-            return redirect()->intended(route('contact.dashboard'));
+            //return redirect()->intended(route('contact.dashboard'));
 
-            /*
+            
             if (Auth::guard('contact')->user()->CcIsManager) {
                 return redirect()->route('admin.dashboard', ['language' => app()->getLocale()]);
             } else {
                 return redirect()->route('contact.dashboard', ['language' => app()->getLocale()]);
             }
-            */
         }
         return back()->withErrors([
             'username' => 'The provided credentials do not match our records.',
@@ -140,15 +139,13 @@ class ContactController extends Controller
 
         if (is_array($result) && $result['type'] === 'single_company') {
             $this->loginContact($request, $result['contact']);
-            return redirect()->intended(route('contact.dashboard'));
+            //return redirect()->intended(route('contact.dashboard'));
 
-            /*
             if (Auth::guard('contact')->user()->CcIsManager) {
                 return redirect()->route('admin.dashboard', ['language' => app()->getLocale()]);
             } else {
                 return redirect()->route('contact.dashboard', ['language' => app()->getLocale()]);
             }
-            */
         }
         return back()->withErrors(['error' => 'Erreur lors de la connexion']);
     }

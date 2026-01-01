@@ -25,7 +25,10 @@ class HomeController extends Controller
         $header         = (string) trans('Log in to your account as contact');
         $description   = (string) trans('Enter your email and password below to log in');
         return view('contact.index', ['header' => $header, 'description' => $description]);
+        //return view('contact.login', ['header' => $header, 'description' => $description]);
+        
     }
+
 
     public function forgetPassword(): Factory|\Illuminate\Contracts\View\View
     {

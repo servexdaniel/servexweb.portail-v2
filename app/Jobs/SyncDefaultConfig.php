@@ -25,7 +25,7 @@ class SyncDefaultConfig implements ShouldQueue
     public function handle(): void
     {
         (new ServexSynchro())->CoUseNewDataX();
-        Log::info("----> Handle Job syncDefaultConfig::CoUseNewDataX");
+        Log::info("----> Job executed syncDefaultConfig::CoUseNewDataX");
         (new ServexSynchro())->syncWebConfig();
         Log::info("----> Job executed syncDefaultConfig::syncWebConfig");
         (new ServexSynchro())->syncCodes();
@@ -44,10 +44,7 @@ class SyncDefaultConfig implements ShouldQueue
         Log::info("----> Job executed syncDefaultConfig::syncCompanyExtraInfo ");
         (new ServexSynchro())->syncCpaWeb();
         Log::info("----> Job executed syncDefaultConfig::syncCpaWeb ");
-        /*
-        // Désactivé pour le moment car pas encore prêt côté Servex
-        $this->syncDataX();
+        (new ServexSynchro())->syncDataX();
         Log::info("----> Job executed SyncDataX  ");
-        */
     }
 }

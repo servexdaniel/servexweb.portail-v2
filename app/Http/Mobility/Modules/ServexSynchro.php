@@ -5,6 +5,7 @@ namespace App\Http\Mobility\Modules;
 use Exception;
 use App\Models\Cpa;
 use App\Models\Code;
+use App\Models\DataX;
 use App\Models\Labour;
 use App\Models\Travel;
 use App\Models\Contact;
@@ -25,6 +26,7 @@ use App\Http\Mobility\Commands\SrTechnician;
 use App\Http\Mobility\Commands\CoUseNewDataX;
 use App\Http\Mobility\Commands\SrCompanyExtra;
 use App\Http\Mobility\Commands\SrCustomerInfo;
+use App\Http\Mobility\Commands\SrDataXControl;
 use App\Http\Mobility\Interfaces\IServexSynchro;
 use App\Http\Mobility\Commands\CoGetWindowsServiceVersion;
 
@@ -692,6 +694,116 @@ class ServexSynchro implements IServexSynchro
             return $dataset;
         } catch (\Exception $e) {
             throw new Exception($e->getMessage());
+        }
+    }
+
+    function syncDataX()
+    {
+
+        //Activer la connexion
+        if (!$this->servexMobilityClient->connect()) throw new Exception("syncCpaWeb : Connexion impossible");
+        //Début de la transaction via le rabbitmq
+        $this->servexMobilityClient->beginTransaction();
+
+        $commandHdr = (new SrDataXControl())->getParams($this->messageId);
+
+        //Envoyer le message
+        $this->servexMobilityClient->send($commandHdr->message);
+
+        $this->servexMobilityClient->commitTransaction();
+
+        $response = $this->servexMobilityClient->read();
+
+        $body_arr  = explode($this->separator, $response);
+        array_pop($body_arr);
+
+        $array            = explode($this->separator, $commandHdr->fields);
+        $countFields      = sizeof($array) - 1;
+        $datax_control_arr= array_chunk($body_arr, $countFields, false);
+
+        $client = $this->getCurrentTenant();
+
+        $CallDataXType = 3; //Les dataX de l'appel de service
+        $SerialNumberDataXType = 2; //Les dataX de numéro de série
+        $filtered_datax_control = array_filter($datax_control_arr, fn($control) => !is_null($control) && ($control[0] == $CallDataXType || $control[0] == $SerialNumberDataXType));
+
+        $newArray = array();
+        foreach ($filtered_datax_control as $control) {
+            $DXDataXType    = htmlspecialchars_decode($control[0]);
+            $DXFieldType    = htmlspecialchars_decode($control[1]);
+            $DXFieldName    = htmlspecialchars_decode($control[2]);
+            $DXFieldCaption = htmlspecialchars_decode($control[3]);
+            $DXFieldItems   = htmlspecialchars_decode($control[4]);
+
+            $DXFieldItems = str_replace(array("\n", "\r"), 'þ', $DXFieldItems);
+            $DXFieldItems = str_replace(array("þþ"), 'þ', $DXFieldItems);
+
+            $dataxType = "";
+            switch ($DXDataXType) {
+                case "2":
+                    $dataxType = "SerialNumberDataX";
+                    break;
+                case "3":
+                    $dataxType = "CallDataX";
+                    break;
+            }
+
+            $type = "";
+            switch ($DXFieldType) {
+                case "0":
+                    $type = "Text";
+                    break;
+                case "1":
+                    $type = "Date";
+                    break;
+                case "2":
+                    $type = "Checkbox";
+                    break;
+                case "3":
+                    $type = "List";
+                    break;
+                case "4":
+                    $type = "EditableList";
+                    break;
+                case "5":
+                    $type = "Number";
+                    break;
+                case "6":
+                    $type = "Memo";
+                    break;
+                default:
+                    $type = "Text";
+            }
+
+            array_push(
+                $newArray,
+                array(
+                    'dataxname'          => $dataxType,
+                    'fieldname'          => $DXFieldName,
+                    'fieldlabel'         => $DXFieldCaption,
+                    'fieldtype'          => $type,
+                    'fielditems'         => $DXFieldItems,
+                )
+            );
+        }
+
+        DataX::where('customer_id', $client->id)
+            ->delete();
+
+        foreach ($newArray as $datax) {
+            try {
+
+                DataX::updateOrCreate([
+                    'dataxname'          => $datax['dataxname'],
+                    'customer_id'        => $client->id,
+                    'fieldtype'          => $datax['fieldtype'],
+                    'fieldlabel'         => $datax['fieldlabel'],
+                    'fieldname'          => $datax['fieldname'],
+                    'fielditems'         => $datax['fielditems'],
+                ]);
+            } catch (\Exception $e) {
+                throw new Exception($e->getMessage());
+            }
         }
     }
 }

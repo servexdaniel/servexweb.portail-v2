@@ -31,7 +31,7 @@
                                 src="{{ asset('v1/images/Logo_servex.png') }}" width="auto" height="30"
                                 class="d-inline-block align-top mr-2" alt=""></a>
                         <ul class="navbar-nav">
-                            <li class="nav-item"><a class="nav-link" href="javascript:void(0);">222 Documentation</a>
+                            <li class="nav-item"><a class="nav-link" href="javascript:void(0);">Documentation</a>
                             </li>
                             <li class="nav-item"><a class="nav-link" href="page-register.html">Sign Up</a></li>
                         </ul>
@@ -57,7 +57,6 @@
                     </div>
                 </div>
                 <div class="col-lg-4">
-                    CONTENT
                     @yield('content')
                 </div>
             </div>

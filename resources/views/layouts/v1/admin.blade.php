@@ -15,6 +15,14 @@
     <link rel="stylesheet" href="{{ asset('v1/light/vendor/font-awesome/css/font-awesome.min.css') }}">
 
 
+    <link rel="stylesheet" href="{{ asset('v1/light/vendor/charts-c3/plugin.css') }}" />
+    <link rel="stylesheet"
+        href="{{ asset('v1/light/vendor/bootstrap-progressbar/css/bootstrap-progressbar-3.3.4.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('v1/light/vendor/chartist/css/chartist.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('v1/light/vendor/chartist-plugin-tooltip/chartist-plugin-tooltip.css') }}">
+    <link rel="stylesheet" href="{{ asset('v1/light/vendor/toastr/toastr.min.css') }}">
+
+
     <!-- MAIN CSS -->
     <link rel="stylesheet" href="{{ asset('v1/light/css/main.css') }}">
     <link rel="stylesheet" href="{{ asset('v1/light/css/color_skins.css') }}">
@@ -94,7 +102,7 @@
 
         @include('layouts.v1.partials.rightbar')
 
-        @include('layouts.v1.partials.sidebar')
+        @include('layouts.v1.partials.admin.sidebar')
 
         <div id="main-content">
             <div class="block-header">
@@ -138,6 +146,12 @@
     <script src="{{ asset('v1/light/bundles/vendorscripts.bundle.js') }}"></script>
 
     <script src="{{ asset('v1/light/bundles/mainscripts.bundle.js') }}"></script>
+
+    <script src="{{ asset('v1/light/bundles/c3.bundle.js') }}"></script>
+    <script src="{{ asset('v1/light/bundles/chartist.bundle.js') }}"></script>
+    <script src="{{ asset('v1/light/vendor/toastr/toastr.js') }}"></script>
+
+    <script src="{{ asset('v1/light/js/index.js') }}"></script>
 </body>
 
 </html>

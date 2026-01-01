@@ -29,25 +29,23 @@ class SyncDefaultConfig implements ShouldQueue
         (new ServexSynchro())->syncWebConfig();
         Log::info("----> Job executed syncDefaultConfig::syncWebConfig");
         (new ServexSynchro())->syncCodes();
-        Log::info("----> Job executed syncCodes ");
+        Log::info("----> Job executed syncDefaultConfig::syncCodes ");
         (new ServexSynchro())->syncTravels();
-        Log::info("----> Job executed syncTravels ");
+        Log::info("----> Job executed syncDefaultConfig::syncTravels ");
         (new ServexSynchro())->syncLabours();
-        Log::info("----> Job executed syncLabors ");
+        Log::info("----> Job executed syncDefaultConfig::syncLabours ");
         (new ServexSynchro())->syncPriorities();
-        Log::info("----> Job executed syncPriorities");
+        Log::info("----> Job executed syncDefaultConfig::syncPriorities");
         (new ServexSynchro())->syncTechnicians();
-        Log::info("----> Job executed syncTechnicians ");
+        Log::info("----> Job executed syncDefaultConfig::syncTechnicians ");
         (new ServexSynchro())->syncDispatchers();
-        Log::info("----> Job executed syncDispatchers ");
+        Log::info("----> Job executed syncDefaultConfig::syncDispatchers ");
         (new ServexSynchro())->syncCompanyExtraInfo();
-        Log::info("----> Job executed syncCompanyExtraInfo ");
+        Log::info("----> Job executed syncDefaultConfig::syncCompanyExtraInfo ");
+        (new ServexSynchro())->syncCpaWeb();
+        Log::info("----> Job executed syncDefaultConfig::syncCpaWeb ");
         /*
-        $countCPAWeb = count((new ServexSynchro())->syncCpaWeb());
-        if ($countCPAWeb == 0) {
-            (new ServexSynchro())->syncCpaWeb();
-        }
-        Log::info("----> Job executed syncCpaWeb ");
+        // Désactivé pour le moment car pas encore prêt côté Servex
         $this->syncDataX();
         Log::info("----> Job executed SyncDataX  ");
         */

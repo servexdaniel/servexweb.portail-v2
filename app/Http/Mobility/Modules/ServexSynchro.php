@@ -3,6 +3,7 @@
 namespace App\Http\Mobility\Modules;
 
 use Exception;
+use App\Models\Cpa;
 use App\Models\Code;
 use App\Models\Labour;
 use App\Models\Travel;
@@ -13,6 +14,7 @@ use App\Models\Technician;
 use Illuminate\Support\Facades\Log;
 use App\Http\Mobility\Commands\SrCode;
 use App\Servex\Traits\UsesDomainTrait;
+use App\Http\Mobility\Commands\SrCPAWeb;
 use App\Http\Mobility\Commands\SrLabour;
 use App\Http\Mobility\Commands\SrTravel;
 use App\Http\Mobility\Commands\SrPriority;
@@ -622,6 +624,72 @@ class ServexSynchro implements IServexSynchro
             }
             $this->servexMobilityClient->disconnect();
             return $isOk;
+        } catch (\Exception $e) {
+            throw new Exception($e->getMessage());
+        }
+    }
+
+    public function syncCpaWeb()
+    {
+        try {
+            //Activer la connexion
+            if (!$this->servexMobilityClient->connect()) throw new Exception("syncCpaWeb : Connexion impossible");
+            //Début de la transaction via le rabbitmq
+            $this->servexMobilityClient->beginTransaction();
+
+            $commandHdr = (new SrCPAWeb())->getParams($this->messageId);
+
+            //Envoyer le message
+            $this->servexMobilityClient->send($commandHdr->message);
+
+            $this->servexMobilityClient->commitTransaction();
+
+            $response = $this->servexMobilityClient->read();
+
+            $client = $this->getCurrentTenant();
+            if ($response != "") {
+                $keys           = explode($this->separator, $commandHdr->fields);
+                array_pop($keys);
+                $values           = explode($this->separator, $response);
+                array_pop($values);
+
+                $countFields            = sizeof($keys);
+                if ($countFields > 0) {
+
+                    $cpa_arr    = collect(array_chunk($values, $countFields, false));
+
+                    //Convertir en un taleau de clé/valeur
+                    $cpa = array();
+                    if (count($cpa_arr) > 0) {
+                        foreach ($cpa_arr as $c) {
+                            array_push(
+                                $cpa,
+                                array_combine($keys, $c)
+                            );
+                        }
+                    }
+
+
+                    Cpa::where('customer_id', $client->id)->delete();
+
+                    foreach ($cpa as $c) {
+                        try {
+                            Cpa::updateOrCreate([
+                                'customer_id'       => $client->id,
+                                'CpUnique'          => $c['CpUnique'],
+                                'CpTitle'            => $c['CpTitle'],
+                                'CpNumber'            => $c['CpNumber'],
+                                'CpPortalSelection'   => filter_var($c['CpPortalSelection'], FILTER_VALIDATE_BOOLEAN),
+                            ]);
+                        } catch (\Exception $e) {
+                            throw new Exception($e->getMessage());
+                        }
+                    }
+                }
+            }
+            $dataset = Cpa::where('customer_id', $client->id)->get();
+            $this->servexMobilityClient->disconnect();
+            return $dataset;
         } catch (\Exception $e) {
             throw new Exception($e->getMessage());
         }

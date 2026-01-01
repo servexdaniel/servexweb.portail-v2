@@ -1,6 +1,8 @@
 <?php
 
-namespace App\Http\Mobility;
+namespace App\Http\Mobility\Commands;
+use App\Http\Mobility\Interfaces\IServexCommand;
+use App\Http\Mobility\Commands\ServexCommandHeader;
 
 use Stomp\Transport\Message;
 

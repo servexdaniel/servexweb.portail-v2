@@ -38,9 +38,9 @@ class SyncDefaultConfig implements ShouldQueue
         Log::info("----> Job executed syncPriorities");
         (new ServexSynchro())->syncTechnicians();
         Log::info("----> Job executed syncTechnicians ");
-        /*
         (new ServexSynchro())->syncDispatchers();
         Log::info("----> Job executed syncDispatchers ");
+        /*
         (new ServexSynchro())->syncCompanyExtraInfo();
         Log::info("----> Job executed syncCompanyExtraInfo ");
         $countCPAWeb = count((new ServexSynchro())->syncCpaWeb());

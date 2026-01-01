@@ -8,6 +8,7 @@ use App\Models\Labour;
 use App\Models\Travel;
 use App\Models\Contact;
 use App\Models\Priority;
+use App\Models\Dispatcher;
 use App\Models\Technician;
 use Illuminate\Support\Facades\Log;
 use App\Http\Mobility\Commands\SrCode;
@@ -17,6 +18,7 @@ use App\Http\Mobility\Commands\SrTravel;
 use App\Http\Mobility\Commands\SrPriority;
 use App\Http\Mobility\Commands\SrWebConfig;
 use App\Http\Mobility\ServexMobilityClient;
+use App\Http\Mobility\Commands\SrDispatcher;
 use App\Http\Mobility\Commands\SrTechnician;
 use App\Http\Mobility\Commands\CoUseNewDataX;
 use App\Http\Mobility\Commands\SrCustomerInfo;
@@ -508,6 +510,69 @@ class ServexSynchro implements IServexSynchro
                 }
             }
             $dataset = Technician::where('customer_id', $client->id)->get();
+            $this->servexMobilityClient->disconnect();
+            return $dataset;
+        } catch (\Exception $e) {
+            throw new Exception($e->getMessage());
+        }
+    }
+
+    public function syncDispatchers()
+    {
+        try {
+            //Activer la connexion
+            if (!$this->servexMobilityClient->connect()) throw new Exception("syncDispatchers : Connexion impossible");
+            //Début de la transaction via le rabbitmq
+            $this->servexMobilityClient->beginTransaction();
+
+            $commandHdr = (new SrDispatcher())->getParams($this->messageId);
+
+            //Envoyer le message
+            $this->servexMobilityClient->send($commandHdr->message);
+
+            $this->servexMobilityClient->commitTransaction();
+
+            $response = $this->servexMobilityClient->read();
+
+            $keys           = explode($this->separator, $commandHdr->fields);
+            array_pop($keys);
+            $values           = explode($this->separator, $response);
+            array_pop($values);
+
+            $countFields            = sizeof($keys);
+            if ($countFields > 0) {
+
+                $dispatchers_arr    = collect(array_chunk($values, $countFields, false));
+
+                //Convertir en un taleau de clé/valeur
+                $dispatchers = array();
+                if (count($dispatchers_arr) > 0) {
+                    foreach ($dispatchers_arr as $disp) {
+                        array_push(
+                            $dispatchers,
+                            array_combine($keys, $disp)
+                        );
+                    }
+                }
+
+                $client = $this->getCurrentTenant();
+                Dispatcher::where('customer_id', $client->id)->delete();
+
+                foreach ($dispatchers as $disp) {
+                    try {
+                        if ($disp['DiName'] != "") {
+                            Dispatcher::updateOrCreate([
+                                'customer_id'       => $client->id,
+                                'DiNumber'          => $disp['DiNumber'],
+                                'DiName'            => $disp['DiName']
+                            ]);
+                        }
+                    } catch (\Exception $e) {
+                        throw new Exception($e->getMessage());
+                    }
+                }
+            }
+            $dataset = Dispatcher::where('customer_id', $client->id)->get();
             $this->servexMobilityClient->disconnect();
             return $dataset;
         } catch (\Exception $e) {

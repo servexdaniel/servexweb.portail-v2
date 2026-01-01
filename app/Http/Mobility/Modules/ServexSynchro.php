@@ -21,6 +21,7 @@ use App\Http\Mobility\ServexMobilityClient;
 use App\Http\Mobility\Commands\SrDispatcher;
 use App\Http\Mobility\Commands\SrTechnician;
 use App\Http\Mobility\Commands\CoUseNewDataX;
+use App\Http\Mobility\Commands\SrCompanyExtra;
 use App\Http\Mobility\Commands\SrCustomerInfo;
 use App\Http\Mobility\Interfaces\IServexSynchro;
 use App\Http\Mobility\Commands\CoGetWindowsServiceVersion;
@@ -575,6 +576,52 @@ class ServexSynchro implements IServexSynchro
             $dataset = Dispatcher::where('customer_id', $client->id)->get();
             $this->servexMobilityClient->disconnect();
             return $dataset;
+        } catch (\Exception $e) {
+            throw new Exception($e->getMessage());
+        }
+    }
+
+    public function syncCompanyExtraInfo()
+    {
+        $isOk = false;
+        try {
+            //Activer la connexion
+            if (!$this->servexMobilityClient->connect()) throw new Exception("syncCompanyExtraInfo : Connexion impossible");
+            //Début de la transaction via le rabbitmq
+            $this->servexMobilityClient->beginTransaction();
+
+            $commandHdr = (new SrCompanyExtra())->getParams($this->messageId);
+
+            //Envoyer le message
+            $this->servexMobilityClient->send($commandHdr->message);
+
+            $this->servexMobilityClient->commitTransaction();
+
+            $response = $this->servexMobilityClient->read();
+
+            $keys           = explode($this->separator, $commandHdr->fields);
+            array_pop($keys);
+            $companyExtraInfo           = explode($this->separator, $response);
+            array_pop($companyExtraInfo);
+
+            $client = $this->getCurrentTenant();
+            if (count($companyExtraInfo) > 0) {
+                $isOk = true;
+                if (array_key_exists('0', $companyExtraInfo)) {
+                    $CiDefPriorityNumber = $companyExtraInfo[0];
+                    $client->setSetting('DEFAULT_PriorityNumber', $CiDefPriorityNumber);
+                }
+                if (array_key_exists('1', $companyExtraInfo)) {
+                    $CiDefTravelNumber = $companyExtraInfo[1];
+                    $client->setSetting('DEFAULT_TravelNumber', $CiDefTravelNumber);
+                }
+                if (array_key_exists('2', $companyExtraInfo)) {
+                    $CiDefCodeNumber = $companyExtraInfo[2];
+                    $client->setSetting('DEFAULT_CodeNumber', $CiDefCodeNumber);
+                }
+            }
+            $this->servexMobilityClient->disconnect();
+            return $isOk;
         } catch (\Exception $e) {
             throw new Exception($e->getMessage());
         }

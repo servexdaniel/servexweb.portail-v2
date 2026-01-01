@@ -57,6 +57,7 @@
                     </div>
                 </div>
                 <div class="col-lg-4">
+                    CONTENT
                     @yield('content')
                 </div>
             </div>

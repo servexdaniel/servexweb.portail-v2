@@ -1,4 +1,4 @@
-@extends('layouts.v1.guest')
+@extends('layouts.v1.contact-guest')
 
 @section('content')
 LOGIN

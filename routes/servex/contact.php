@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Contact\HomeController;
 use App\Http\Controllers\Servex\ContactController;
 
 Route::middleware(['guest:contact', 'PreventBackHistory'])->group(function () {
@@ -23,6 +24,7 @@ Route::middleware(['auth:contact', 'PreventBackHistory'])->group(function () {
     Route::get('/dashboard', [ContactController::class, 'dashboard'])->name('dashboard')->middleware('validate.settings');
     Route::get('/profile', [ContactController::class, 'profile'])->name('profile');
     Route::post('logout', [ContactController::class, 'logout'])->name('logout');
+    Route::get('/home', [HomeController::class, 'index'])->name('home');
 });
 
 Route::post('/select-company', [ContactController::class, 'selectCompany'])->name('select-company');

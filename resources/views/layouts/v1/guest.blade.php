@@ -29,9 +29,10 @@
                 @include('partials.messages')
                 <div class="col-12">
                     <nav class="navbar navbar-expand-lg">
-                        <a class="navbar-brand" href="javascript:void(0);"><img
+                        {{-- <a class="navbar-brand" href="javascript:void(0);"><img
                                 src="{{ asset('v1/images/Logo_servex.png') }}" width="auto" height="30"
-                                class="d-inline-block align-top mr-2" alt=""></a>
+                                class="d-inline-block align-top mr-2" alt=""></a> --}}
+
                         <ul class="navbar-nav">
                             <li class="nav-item"><a class="nav-link" href="javascript:void(0);">Documentation</a>
                             </li>

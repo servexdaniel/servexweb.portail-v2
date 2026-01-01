@@ -222,11 +222,10 @@ class ContactController extends Controller
 
     public function showLoginForm(): Factory|\Illuminate\Contracts\View\View
     {
-        Log::channel('audit')->info('Contact visits index.');
+        Log::channel('audit')->info('Contact visits login.');
         $header         = (string) trans('Log in to your account as contact');
         $description   = (string) trans('Enter your email and password below to log in');
         return view('contact.login', ['header' => $header, 'description' => $description]);
-        
     }
 
     public function create()
@@ -277,9 +276,18 @@ class ContactController extends Controller
         dd("submitResetPasswordForm");
     }
 
+    /*
     public function dashboard()
     {
         return view('contact.dashboard'); // ou ta vue avec Flux
+    }
+    */
+
+    public function dashboard(): Factory|\Illuminate\Contracts\View\View
+    {
+        Log::channel('audit')->info('Contact visits login.');
+        $title         = (string) trans('Dashboard du contact');
+        return view('contact.dashboard2', ['title' => $title]);
     }
 
     public function profile()

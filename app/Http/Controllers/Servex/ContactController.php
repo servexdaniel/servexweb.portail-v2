@@ -18,10 +18,25 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Validation\Rules\Password;
 use \App\Http\Mobility\Modules\ServexAuth;
 use App\Http\Mobility\Modules\ServexSynchro;
+use App\Http\Middleware\RedirectIfAuthenticated;
 
 class ContactController extends Controller
 {
     use UsesDomainTrait;
+
+    public function __construct()
+    {
+        parent::__construct();
+
+        $this->middleware(
+            static function ($request, $next) {
+                return $next($request);
+            }
+        );
+        $this->middleware(RedirectIfAuthenticated::class)->only(['dashboard', 'profile']);
+    }
+
+
     public function login(Request $request)
     {
         $credentials = $request->validate([
@@ -76,6 +91,14 @@ class ContactController extends Controller
         if (is_array($result) && $result['type'] === 'single_company') {
             $this->loginContact($request, $result['contact']);
             return redirect()->intended(route('contact.dashboard'));
+
+            /*
+            if (Auth::guard('contact')->user()->CcIsManager) {
+                return redirect()->route('admin.dashboard', ['language' => app()->getLocale()]);
+            } else {
+                return redirect()->route('contact.dashboard', ['language' => app()->getLocale()]);
+            }
+            */
         }
         return back()->withErrors([
             'username' => 'The provided credentials do not match our records.',
@@ -118,6 +141,14 @@ class ContactController extends Controller
         if (is_array($result) && $result['type'] === 'single_company') {
             $this->loginContact($request, $result['contact']);
             return redirect()->intended(route('contact.dashboard'));
+
+            /*
+            if (Auth::guard('contact')->user()->CcIsManager) {
+                return redirect()->route('admin.dashboard', ['language' => app()->getLocale()]);
+            } else {
+                return redirect()->route('contact.dashboard', ['language' => app()->getLocale()]);
+            }
+            */
         }
         return back()->withErrors(['error' => 'Erreur lors de la connexion']);
     }

@@ -18,6 +18,18 @@ class RedirectIfAuthenticated
     {
         $guards = empty($guards) ? [null] : $guards;
 
+        /*
+        if (Auth::guard('contact')->check()) {
+            if (Auth::guard('contact')->user()->CcIsManager) {
+                return redirect()->route('admin.dashboard', ['language' => app()->getLocale()]);
+            } else {
+                return redirect()->route('contact.dashboard', ['language' => app()->getLocale()]);
+            }
+        }
+        */
+        
+
+        /*
         foreach ($guards as $guard) {
             if (Auth::guard($guard)->check()) {
                 if ($guard == 'contact') {
@@ -32,6 +44,7 @@ class RedirectIfAuthenticated
                 }
             }
         }
+        */
 
         return $next($request);
     }

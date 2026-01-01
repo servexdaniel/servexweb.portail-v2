@@ -3,8 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\View;
+use Illuminate\Routing\Controller as BaseController;
 
-abstract class Controller
+abstract class Controller  extends BaseController
 {
     public function __construct()
     {
@@ -17,6 +18,16 @@ abstract class Controller
         //View::share('FF_VERSION', config('firefly.version'));
         //View::share('FF_BUILD_TIME', config('firefly.build_time'));
         View::share('FF_BUILD_TIME', 1765863630);
+
+        $this->middleware(
+            function ($request, $next): mixed {
+                // Définir le mode sombre par défaut sur "browser"
+                $darkMode                = 'browser';
+                View::share('darkMode', $darkMode);
+
+                return $next($request);
+            }
+        );
 
     }
 }

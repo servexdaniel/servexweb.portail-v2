@@ -22,9 +22,8 @@ class HomeController extends Controller
     public function index(): Factory|\Illuminate\Contracts\View\View
     {
         Log::channel('audit')->info('User visits admin index.');
-        $title         = (string) trans('firefly.system_settings');
-        $mainTitleIcon = 'fa-hand-spock-o';
-        $email         = auth()->user()->email;
-        return view('contact.index', ['title' => $title, 'mainTitleIcon' => $mainTitleIcon, 'email' => $email]);
+        $header         = (string) trans('Log in to your account as contact');
+        $description   = (string) trans('Enter your email and password below to log in');
+        return view('contact.index', ['header' => $header, 'description' => $description]);
     }
 }

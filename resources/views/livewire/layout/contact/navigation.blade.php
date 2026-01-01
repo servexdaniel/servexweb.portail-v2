@@ -55,6 +55,10 @@ $logout = function (Logout $logout) {
                             {{ __('Profile Contact') }}
                         </x-dropdown-link>
 
+                        <x-dropdown-link :href="route('contact.home')" wire:navigate>
+                            {{ __('Contact - Home') }}
+                        </x-dropdown-link>
+
                         <!-- Authentication -->
                         <button wire:click="logout" class="w-full text-start">
                             <x-dropdown-link>

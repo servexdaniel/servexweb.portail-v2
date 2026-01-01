@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Jobs\SyncCustomerInfo;
 use App\Jobs\SyncDefaultConfig;
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -219,9 +220,13 @@ class ContactController extends Controller
         }
     }
 
-    public function showLoginForm()
+    public function showLoginForm(): Factory|\Illuminate\Contracts\View\View
     {
-        return view('auth.contact.login');
+        Log::channel('audit')->info('Contact visits index.');
+        $header         = (string) trans('Log in to your account as contact');
+        $description   = (string) trans('Enter your email and password below to log in');
+        return view('contact.login', ['header' => $header, 'description' => $description]);
+        
     }
 
     public function create()

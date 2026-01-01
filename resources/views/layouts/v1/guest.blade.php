@@ -17,6 +17,8 @@
     <!-- MAIN CSS -->
     <link rel="stylesheet" href="{{ asset('v1/light/css/main.css') }}">
     <link rel="stylesheet" href="{{ asset('v1/light/css/color_skins.css') }}">
+
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
 <body class="theme-orange">

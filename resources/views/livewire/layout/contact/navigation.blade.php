@@ -59,6 +59,10 @@ $logout = function (Logout $logout) {
                             {{ __('Contact - Home') }}
                         </x-dropdown-link>
 
+                        <x-dropdown-link :href="route('contact.forget-password')" wire:navigate>
+                            {{ __('Contact - Forget') }}
+                        </x-dropdown-link>
+
                         <!-- Authentication -->
                         <button wire:click="logout" class="w-full text-start">
                             <x-dropdown-link>
@@ -104,6 +108,14 @@ $logout = function (Logout $logout) {
             <div class="mt-3 space-y-1">
                 <x-responsive-nav-link :href="route('contact.profile')" wire:navigate>
                     {{ __('Profile Contact') }}
+                </x-responsive-nav-link>
+
+                <x-responsive-nav-link :href="route('contact.home')" wire:navigate>
+                    {{ __('Contact - Home') }}
+                </x-responsive-nav-link>
+
+                <x-responsive-nav-link :href="route('contact.forget-password')" wire:navigate>
+                    {{ __('Contact - Forget') }}
                 </x-responsive-nav-link>
 
                 <!-- Authentication -->

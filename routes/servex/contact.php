@@ -24,7 +24,9 @@ Route::middleware(['auth:contact', 'PreventBackHistory'])->group(function () {
     Route::get('/dashboard', [ContactController::class, 'dashboard'])->name('dashboard')->middleware('validate.settings');
     Route::get('/profile', [ContactController::class, 'profile'])->name('profile');
     Route::post('logout', [ContactController::class, 'logout'])->name('logout');
+
     Route::get('/home', [HomeController::class, 'index'])->name('home');
+    Route::get('/forget-password', [HomeController::class, 'forgetPassword'])->name('forget-password');
 });
 
 Route::post('/select-company', [ContactController::class, 'selectCompany'])->name('select-company');

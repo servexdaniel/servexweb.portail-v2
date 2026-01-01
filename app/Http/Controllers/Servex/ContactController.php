@@ -7,6 +7,7 @@ use App\Models\Contact;
 use Illuminate\Http\Request;
 use App\Jobs\SyncCustomerInfo;
 use App\Jobs\SyncDefaultConfig;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
@@ -297,10 +298,26 @@ class ContactController extends Controller
 
     public function logout(Request $request)
     {
-        dd("logout");
-        auth('contact')->logout();
+        $contact_id = Auth::guard('contact')->user()->id;
+        $contact = Contact::find($contact_id);
+
+        //Deconnexion
+        Auth::guard('contact')->logout();
+        $request = request();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        return redirect()->route('contact.login');
+        $request->session()->flush();
+
+        $client   = $this->getCurrentTenant();
+
+        //Enlever la session de la base de données
+        DB::table('sessions')->where('id', $contact->sessionid)->delete();
+
+        //Supprimer les informations du contact
+        $contact->delete();
+
+        //return redirect()->route('welcome', ['language' => app()->getLocale()]);
+        return redirect()->route('home', ['language' => app()->getLocale()]);
+
     }
 }

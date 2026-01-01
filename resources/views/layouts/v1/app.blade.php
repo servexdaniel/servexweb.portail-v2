@@ -73,7 +73,15 @@
                                         <ul class="dropdown-menu dropdown-menu-right account">
                                             <li><a href={{ route('contact.profile') }}>My Profile</a></li>
                                             <li><a href="javascript:void(0);" class="right_toggle">Settings</a></li>
-                                            <li><a href="page-login.html">Logout</a></li>
+                                            <li>
+                                                <form method="POST" action="{{ route('contact.logout') }}">
+                                                    @csrf
+
+                                                    <a
+                                                        onclick="event.preventDefault();
+                                                                        this.closest('form').submit();">Logout</a>
+                                                </form>
+                                            </li>
                                         </ul>
                                     </div>
                                 </div>

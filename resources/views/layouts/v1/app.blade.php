@@ -25,13 +25,13 @@
 <body class="theme-orange">
 
     <!-- Page Loader -->
-    <div class="page-loader-wrapper">
+    {{-- <div class="page-loader-wrapper">
         <div class="loader">
             <div class="m-t-30"><img src="../assets/images/icon-light.svg" width="48" height="48" alt="HexaBit">
             </div>
             <p>Please wait...</p>
         </div>
-    </div>
+    </div> --}}
     <!-- Overlay For Sidebars -->
     <div class="overlay"></div>
 
@@ -63,8 +63,13 @@
                                     <div class="dropdown">
                                         <span>Welcome,</span>
                                         <a href="javascript:void(0);" class="dropdown-toggle user-name"
-                                            data-toggle="dropdown"><strong>Christy
-                                                Wert</strong></a>
+                                            data-toggle="dropdown">
+                                            <strong>
+                                                <span x-data="{{ json_encode(['name' => auth('contact')->user()->CcName]) }}" x-text="name"
+                                                    x-on:contact-profile-updated.window="name = $event.detail.name;">
+                                                </span>
+                                            </strong>
+                                        </a>
                                         <ul class="dropdown-menu dropdown-menu-right account">
                                             <li><a href={{ route('contact.profile') }}>My Profile</a></li>
                                             <li><a href="javascript:void(0);" class="right_toggle">Settings</a></li>
@@ -111,30 +116,6 @@
                 <div class="row clearfix">
 
                     <div class="col-lg-12 col-md-12">
-                        <div class="card planned_task">
-                            <div class="header">
-                                <h2>Stater Page</h2>
-                                <ul class="header-dropdown dropdown dropdown-animated scale-left">
-                                    <li> <a href="javascript:void(0);" data-toggle="cardloading"
-                                            data-loading-effect="pulse"><i class="icon-refresh"></i></a></li>
-                                    <li><a href="javascript:void(0);" class="full-screen"><i
-                                                class="icon-size-fullscreen"></i></a></li>
-                                    <li class="dropdown">
-                                        <a href="javascript:void(0);" class="dropdown-toggle" data-toggle="dropdown"
-                                            role="button" aria-haspopup="true" aria-expanded="false"></a>
-                                        <ul class="dropdown-menu">
-                                            <li><a href="javascript:void(0);">Action</a></li>
-                                            <li><a href="javascript:void(0);">Another Action</a></li>
-                                            <li><a href="javascript:void(0);">Something else</a></li>
-                                        </ul>
-                                    </li>
-                                </ul>
-                            </div>
-                            <div class="body">
-                                <h4>Stater Page</h4>
-                            </div>
-                        </div>
-
                         @yield('content')
                     </div>
 

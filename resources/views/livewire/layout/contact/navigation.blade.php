@@ -94,7 +94,7 @@ $logout = function (Logout $logout) {
         <div class="pt-4 pb-1 border-t border-gray-200">
             <div class="px-4">
                 <div class="font-medium text-base text-gray-800" x-data="{{ json_encode(['name' => auth('contact')->user()->CcName]) }}" x-text="name"
-                    x-on:profile-updated.window="name = $event.detail.CcName"></div>
+                    x-on:contact-profile-updated.window="name = $event.detail.CcName"></div>
                 <div class="font-medium text-sm text-gray-500">{{ auth('contact')->user()->email }}</div>
             </div>
 

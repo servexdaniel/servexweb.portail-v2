@@ -47,4 +47,8 @@ Route::group([
     Route::prefix('contact')->name('contact.')->group(function () {
         require __DIR__ . '/servex/contact.php';
     });
+
+    Route::prefix('admin')->name('admin.')->group(function () {
+        require __DIR__ . '/servex/admin.php';
+    });
 });

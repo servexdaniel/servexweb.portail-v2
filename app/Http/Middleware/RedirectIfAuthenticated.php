@@ -22,7 +22,7 @@ class RedirectIfAuthenticated
             if (Auth::guard($guard)->check()) {
                 if ($guard == 'contact') {
                     if (Auth::guard('contact')->user()->CcIsManager) {
-                        return redirect()->route('contact.calls.columns.settings', ['language' => app()->getLocale()]);
+                        return redirect()->route('admin.dashboard', ['language' => app()->getLocale()]);
                     } else {
                         return redirect()->route('contact.dashboard', ['language' => app()->getLocale()]);
                     }

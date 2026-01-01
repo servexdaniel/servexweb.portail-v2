@@ -1,6 +1,6 @@
 <?php
 
-use App\Livewire\Actions\Logout;
+use App\Livewire\Actions\Contact\Logout;
 use Illuminate\Support\Facades\Auth;
 
 use function Livewire\Volt\rules;

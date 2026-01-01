@@ -9,8 +9,13 @@
         <div class="user-account">
             <div class="dropdown">
                 <span>Welcome,</span>
-                <a href="javascript:void(0);" class="dropdown-toggle user-name" data-toggle="dropdown"><strong>Christy
-                        Wert</strong></a>
+                <a href="javascript:void(0);" class="dropdown-toggle user-name" data-toggle="dropdown">
+                    <strong>
+                        <span x-data="{{ json_encode(['name' => auth('contact')->user()->CcName]) }}" x-text="name"
+                            x-on:contact-profile-updated.window="name = $event.detail.name;">
+                        </span>
+                    </strong>
+                </a>
                 <ul class="dropdown-menu dropdown-menu-right account">
                     <li><a href="page-profile.html"><i class="icon-user"></i>My Profile</a></li>
                     <li><a href="app-inbox.html"><i class="icon-envelope-open"></i>Messages</a></li>

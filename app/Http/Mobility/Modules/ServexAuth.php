@@ -52,8 +52,9 @@ class ServexAuth implements IServexAuth
             }
 
             $user_info = $response['data'];
+
             // Échec de login
-            if (!$user_info || ($user_info['LoginSuccess'] !== "SUCCES" && !isset($user_info['ListeClient']) && !$user_info['CcIsManager'])) {
+            if (!$user_info || ($user_info['LoginSuccess'] !== "SUCCES" && !isset($user_info['ListeClient']) && !filter_var($user_info['CcIsManager'], FILTER_VALIDATE_BOOLEAN))) {
                 return null;
             }
 
@@ -174,7 +175,7 @@ class ServexAuth implements IServexAuth
         $contact->CuName = $ccIsManager ? $client->name : utf8_encode(html_entity_decode(utf8_decode($user_info['CuName'])));
         $contact->CcName      = $this->username;
         $contact->CcIsManager = $ccIsManager;
-        $contact->CcUnique = $user_info['CcUnique'];
+        $contact->CcUnique = $ccIsManager ?  null : $user_info['CcUnique'];
         $contact->CcPortailAdmin = isset($user_info['CcPortailAdmin']) ? filter_var($user_info['CcPortailAdmin'], FILTER_VALIDATE_BOOLEAN) : false;
         $contact->CcPhoneNumber      = isset($user_info['CcPhoneNumber']) ? html_entity_decode(utf8_decode($user_info['CcPhoneNumber'])) : null;
         $contact->CcEmail      = isset($user_info['CcEmail']) ? utf8_encode(html_entity_decode(utf8_decode($user_info['CcEmail']))) : null;

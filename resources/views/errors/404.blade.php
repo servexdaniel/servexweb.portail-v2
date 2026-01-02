@@ -5,12 +5,14 @@
         <div class="header">
             <h3>
                 <span class="clearfix title">
-                    <h2><span class="text text-danger">Error 403 <br />Accès refusé!</span></h2>
+                    <span class="number left text-danger">404 </span><span class="text text-danger">Oops! <br />Page Not
+                        Found</span>
                 </span>
             </h3>
         </div>
         <div class="body">
-            <p class="lead">Vous n'avez pas les autorisations nécessaires pour accéder à cette page.</p>
+            <p>The page you were looking for could not be found, please <a href="javascript:void(0);">contact us</a> to
+                report this issue.</p>
             <div class="margin-top-30">
                 <a href="javascript:history.go(-1)" class="btn btn-default btn-block"><i class="fa fa-arrow-left"></i>
                     <span>Retour</span></a>

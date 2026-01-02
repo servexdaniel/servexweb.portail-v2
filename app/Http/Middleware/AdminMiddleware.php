@@ -4,10 +4,10 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\Auth;
+use Symfony\Component\HttpFoundation\Response;
 
-class RedirectIfAuthenticated
+class AdminMiddleware
 {
     /**
      * Handle an incoming request.
@@ -22,17 +22,16 @@ class RedirectIfAuthenticated
             if (Auth::guard($guard)->check()) {
                 if ($guard == 'contact') {
                     if (Auth::guard('contact')->user()->CcIsManager) {
-                        return redirect()->route('admin.dashboard', ['language' => app()->getLocale()]);
+                        return $next($request);
                     } else {
                         return redirect()->route('contact.dashboard', ['language' => app()->getLocale()]);
                     }
                 }
-                if ($guard == 'web') {
-                    return redirect()->route('dashboard', ['language' => app()->getLocale()]);
+                else {
+                    abort(Response::HTTP_FORBIDDEN);
                 }
             }
         }
-
-        return $next($request);
+        abort(Response::HTTP_FORBIDDEN);
     }
 }

@@ -14,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             \App\Http\Middleware\SetLanguage::class,
             \App\Http\Middleware\EnsureValidTenantDomain::class,
+            \App\Http\Middleware\RedirectIfAuthenticated::class,
         ]);
 
         // Les middlewares personnalisés (équivalent de $routeMiddleware)
@@ -28,6 +29,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'signed'             => \Illuminate\Routing\Middleware\ValidateSignature::class,
             'throttle'           => \Illuminate\Routing\Middleware\ThrottleRequests::class,
             'verified'           => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
+            'admin'              => \App\Http\Middleware\AdminMiddleware::class,
 
             'tenants' => [
                 \App\Http\Middleware\CustomNeedsTenant::class,
@@ -41,6 +43,15 @@ return Application::configure(basePath: dirname(__DIR__))
             'sessiontimeout'     => \App\Http\Middleware\SessionTimeout::class,
 
         ]);
+
+        // Middleware AVEC paramètres (comme RedirectIfAuthenticated ou auth)
+        /*
+        $middleware->use([
+            // Middleware générique
+            // Avec un guard spécifique par défaut
+            \App\Http\Middleware\AdminMiddleware::class . ':contact',
+        ]);
+        */
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

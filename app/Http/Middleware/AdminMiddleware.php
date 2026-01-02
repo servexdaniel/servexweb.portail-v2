@@ -54,7 +54,7 @@ class AdminMiddleware
         // Requête classique : redirection avec message flash (recharge une autre page)
         return redirect()
             ->route('contact.dashboard', ['language' => app()->getLocale()])
-            ->with('error', 'Accès refusé : vous n avez pas les droits d administrateur.');
+            ->with('error', 'Accès refusé : vous n\'avez pas les droits d\'administrateur.');
 
         // Alternative sans redirection (affiche une page 403 personnalisée) :
         // abort(Response::HTTP_FORBIDDEN, 'Accès refusé : droits administrateur requis.');

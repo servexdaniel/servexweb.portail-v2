@@ -102,6 +102,7 @@
                     @isset($title)
                         <div class="col-md-6 col-sm-12">
                             <h2>{{ $title }}</h2>
+                            <h3>{{ $isManager }}</h3>
                         </div>
                     @endisset
                     <div class="col-md-6 col-sm-12 text-right">

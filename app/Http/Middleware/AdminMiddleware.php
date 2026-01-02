@@ -24,7 +24,8 @@ class AdminMiddleware
                     if (Auth::guard('contact')->user()->CcIsManager) {
                         return $next($request);
                     } else {
-                        return redirect()->route('contact.dashboard', ['language' => app()->getLocale()]);
+                        //return redirect()->route('contact.dashboard', ['language' => app()->getLocale()]);
+                        abort(Response::HTTP_FORBIDDEN);
                     }
                 }
                 else {

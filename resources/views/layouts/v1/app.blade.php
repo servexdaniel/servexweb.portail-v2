@@ -94,7 +94,11 @@
 
         @include('layouts.v1.partials.rightbar')
 
-        @include('layouts.v1.partials.sidebar')
+        @if ($isManager)
+            @include('layouts.v1.partials.admin.sidebar')
+        @else
+            @include('layouts.v1.partials.sidebar')
+        @endif
 
         <div id="main-content">
             <div class="block-header">

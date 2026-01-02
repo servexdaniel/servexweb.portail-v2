@@ -22,7 +22,8 @@ class ContactMiddleware
             if (Auth::guard($guard)->check()) {
                 if ($guard == 'contact') {
                     if (Auth::guard('contact')->user()->CcIsManager) {
-                        return redirect()->route('admin.dashboard', ['language' => app()->getLocale()]);
+                        //return redirect()->route('admin.dashboard', ['language' => app()->getLocale()]);
+                        abort(Response::HTTP_FORBIDDEN);
                     } else {
                         return $next($request);
                     }

@@ -70,12 +70,14 @@ class ContactMiddleware
             ], Response::HTTP_FORBIDDEN);
         }
 
+        /*
         // Requête classique : redirection avec message flash (recharge une autre page)
         return redirect()
             ->route('admin.dashboard', ['language' => app()->getLocale()])
             ->with('error', 'Accès refusé : vous n\'êtes pas un contact.');
+            */
 
         // Alternative sans redirection (affiche une page 403 personnalisée) :
-        // abort(Response::HTTP_FORBIDDEN, 'Accès refusé : droits administrateur requis.');
+        abort(Response::HTTP_FORBIDDEN, 'Accès refusé : droits contact requis.');
     }
 }

@@ -102,6 +102,7 @@
 
         <div id="main-content">
             <div class="block-header">
+                @include('partials.messages')
                 <div class="row clearfix">
                     @isset($title)
                         <div class="col-md-6 col-sm-12">

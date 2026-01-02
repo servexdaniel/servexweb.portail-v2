@@ -17,12 +17,17 @@ class HomeController extends Controller
         $this->middleware(
             static function ($request, $next) {
                 app('view')->share('title', (string) trans('Panneau d\'administration'));
-                app('view')->share('isManager', Auth::guard('contact')->user()->CcIsManager);
+                if(Auth::guard('contact')->check()) {
+                    app('view')->share('isManager', Auth::guard('contact')->user()->CcIsManager);
+                } else {
+                    app('view')->share('isManager', false);
+                }
 
                 return $next($request);
             }
         );
-        $this->middleware(AdminMiddleware::class . ':contact')->only(['dashboard', 'profile']);
+        //$this->middleware(AdminMiddleware::class . ':contact')->only(['dashboard', 'profile']);
+        $this->middleware('admin:contact')->only(['dashboard', 'profile']);
     }
 
     public function dashboard(): Factory|\Illuminate\Contracts\View\View

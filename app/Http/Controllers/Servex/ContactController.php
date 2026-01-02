@@ -17,8 +17,8 @@ use App\Servex\Traits\UsesDomainTrait;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Validation\Rules\Password;
 use \App\Http\Mobility\Modules\ServexAuth;
+use App\Http\Middleware\ContactMiddleware;
 use App\Http\Mobility\Modules\ServexSynchro;
-use App\Http\Middleware\RedirectIfAuthenticated;
 
 class ContactController extends Controller
 {
@@ -30,10 +30,18 @@ class ContactController extends Controller
 
         $this->middleware(
             static function ($request, $next) {
+                app('view')->share('title', (string) trans('Dashboard du contact'));
+                if(Auth::guard('contact')->check()) {
+                    app('view')->share('isManager', Auth::guard('contact')->user()->CcIsManager);
+                } else {
+                    app('view')->share('isManager', false);
+                }
+
                 return $next($request);
             }
         );
-        $this->middleware(RedirectIfAuthenticated::class)->only(['dashboard', 'profile']);
+        //$this->middleware(ContactMiddleware::class . ':contact')->only(['dashboard', 'profile']);
+        $this->middleware('contact:contact')->only(['dashboard', 'profile']);
     }
 
 
@@ -92,7 +100,7 @@ class ContactController extends Controller
             $this->loginContact($request, $result['contact']);
             //return redirect()->intended(route('contact.dashboard'));
 
-            
+
             if (Auth::guard('contact')->user()->CcIsManager) {
                 return redirect()->route('admin.dashboard', ['language' => app()->getLocale()]);
             } else {
@@ -315,8 +323,7 @@ class ContactController extends Controller
     public function dashboard(): Factory|\Illuminate\Contracts\View\View
     {
         Log::channel('audit')->info('Contact visits login.');
-        $title         = (string) trans('Dashboard du contact');
-        return view('contact.dashboard2', ['title' => $title]);
+        return view('contact.dashboard2');
     }
 
     public function profile()

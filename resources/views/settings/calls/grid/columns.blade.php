@@ -8,10 +8,9 @@
             <div class="px-6 mt-2">
                 <div class="grid grid-cols-6 gap-6 mt-5">
 
-                    <div
-                        class=" col-span-12 sm:col-span-6 xl:col-span-3 intro-y bg-gray-50 p-0 rounded-md border-2 border-primary dark:border-primary-light dark:bg-darker dark:text-light  ">
+                    <div class=" col-span-12 sm:col-span-6 xl:col-span-3 intro-y bg-gray-50 p-0 rounded-md border-2 ">
                         <div class="rounded-md mt-1">
-                            <div class="px-3 py-2 dark:bg-darker border-b dark:border-primary bg-primary-50">
+                            <div class="px-3 py-2 border-b">
                                 <h3 class="font-semibold text-lg ">{{ __('Calls (Grid)') }}</h3>
                                 <p class="text-sm text-gray-400">
                                     {{ __('Activate the columns visible in the calls grid.') }}<br />
@@ -24,8 +23,8 @@
                     </div>
 
                     <div x-data="{ activeTabe: '1' }"
-                        class=" col-span-12 sm:col-span-6 xl:col-span-3 intro-y bg-gray-50 p-0 rounded-md border-2 border-primary dark:border-primary-light dark:bg-darker dark:text-light">
-                        <div class="px-3 py-2 dark:bg-darker border-b dark:border-primary bg-primary-50">
+                        class=" col-span-12 sm:col-span-6 xl:col-span-3 intro-y bg-gray-50 p-0 rounded-md border-2  ">
+                        <div class="px-3 py-2 border-b ">
                             <h3 class="font-semibold text-lg ">{{ __('Calls (Detail)') }}</h3>
                             <p class="text-sm text-gray-400">
                                 {{ __('Activate the information visible in the detail screen of each call.') }}
@@ -83,10 +82,9 @@
 
                 <div class="grid grid-cols-6 gap-6 mt-5">
 
-                    <div
-                        class=" col-span-12 sm:col-span-6 xl:col-span-3 intro-y bg-gray-50 p-0 rounded-md border-2 border-primary dark:border-primary-light dark:bg-darker dark:text-light  ">
+                    <div class=" col-span-12 sm:col-span-6 xl:col-span-3 intro-y bg-gray-50 p-0 rounded-md border-2    ">
                         <div class="rounded-md mt-1">
-                            <div class="px-3 py-2 dark:bg-darker border-b dark:border-primary bg-primary-50">
+                            <div class="px-3 py-2 border-b ">
                                 <h3 class="font-semibold text-lg">{{ __('Others') }}</h3>
                                 </p>
                             </div>
@@ -98,10 +96,9 @@
                         </div>
                     </div>
 
-                    <div
-                        class=" col-span-12 sm:col-span-6 xl:col-span-3 intro-y bg-gray-50 p-0 rounded-md border-2 border-primary dark:border-primary-light dark:bg-darker dark:text-light  ">
+                    <div class=" col-span-12 sm:col-span-6 xl:col-span-3 intro-y bg-gray-50 p-0 rounded-md border-2    ">
                         <div class="rounded-md mt-1">
-                            <div class="px-3 py-2 dark:bg-darker border-b dark:border-primary bg-primary-50">
+                            <div class="px-3 py-2 border-b ">
                                 <h3 class="font-semibold text-lg">{{ __('Products and Interventions') }}</h3>
                                 <p class="text-sm text-gray-400">
                                     {{ __('Activate the columns visible in the equipment grid.') }}<br />

@@ -28,10 +28,11 @@
         <nav id="left-sidebar-nav" class="sidebar-nav">
             <ul id="main-menu" class="metismenu">
                 <li><a href="{{ route('admin.dashboard') }}"><i class="icon-home"></i><span>Dashboard</span></a></li>
+                <li><a href="{{ route('admin.calls.columns') }}">Affichage</a></li>
                 <li>
                     <a href="#uiElements" class="has-arrow"><i class="icon-diamond"></i><span>Appels</span></a>
                     <ul>
-                        <li><a href="ui-card.html">Affichage</a></li>
+                        <li><a href="{{ route('admin.calls.columns') }}">Affichage</a></li>
                         <li><a href="ui-helper-class.html">Historique des appels</a></li>
                     </ul>
                 </li>

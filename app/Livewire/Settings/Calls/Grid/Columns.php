@@ -3,35 +3,31 @@
 namespace App\Livewire\Settings\Calls\Grid;
 
 use Livewire\Component;
+use App\Models\CallColumn;
 use Illuminate\Support\Facades\DB;
 use App\Servex\Traits\UsesDomainTrait;
 
 class Columns extends Component
 {
     use UsesDomainTrait;
-    /*
-    public function render()
-    {
-        return view('livewire.settings.calls.grid.columns');
-    }
-    */
 
     public $columns;
     public $isAllMandatoryColumnsActive = false;
 
     public function getColumns()
     {
-
         $client = $this->getCurrentTenant();
 
-        $this->isAllMandatoryColumnsActive = DB::table("servex_call_columns")
-            ->where('servex_call_columns.ismandatory', '=', 1)
-            ->whereNotIn('servex_call_columns.id', function($query) use ($client) {
-                $query->select('servex_customer_call_columns.column_id')
+        $this->isAllMandatoryColumnsActive = CallColumn::query()
+            ->where('ismandatory', 1)
+            ->where('display_in_grid', 1)
+            ->whereNotIn('id', function ($query) use ($client) {
+                $query->select('column_id')
                     ->from('servex_customer_call_columns')
-                    ->where('servex_customer_call_columns.customer_id', $client->id);
+                    ->where('customer_id', $client->id);
             })
-            ->count() === 0;
+            ->doesntExist();
+
 
         $this->columns = DB::table("servex_call_columns")
             ->select("servex_call_columns.*",
@@ -46,6 +42,11 @@ class Columns extends Component
             ->orderBy('servex_call_columns.display_order', 'ASC')
             ->get()->toArray();
         return $this->columns;
+    }
+
+    public function enableAllMandatoryColumns()
+    {
+        dd("enableAllMandatoryColumns");
     }
 
     public function toggleColumn($columnId)

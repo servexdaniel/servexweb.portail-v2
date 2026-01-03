@@ -5,6 +5,7 @@ namespace App\Livewire\Settings\Calls\Grid;
 use Livewire\Component;
 use App\Models\CallColumn;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Servex\Traits\UsesDomainTrait;
 
 class Columns extends Component
@@ -46,7 +47,40 @@ class Columns extends Component
 
     public function enableAllMandatoryColumns()
     {
-        dd("enableAllMandatoryColumns");
+        $client = $this->getCurrentTenant();
+
+        // Récupérer les colonnes obligatoires qui ne sont PAS encore activées pour ce client
+        $missingMandatoryColumns = CallColumn::query()
+            ->where('ismandatory', 1)
+            ->where('display_in_grid', 1)
+            ->whereNotIn('id', function ($query) use ($client) {
+                $query->select('column_id')
+                    ->from('servex_customer_call_columns')
+                    ->where('customer_id', $client->id);
+            })
+            ->get();
+
+        // Si aucune colonne ne manque → rien à faire
+        if ($missingMandatoryColumns->isEmpty()) {
+            return;
+        }
+
+        // Préparer les données à insérer dans la table pivot
+        $dataToInsert = $missingMandatoryColumns->map(function ($column) use ($client) {
+            return [
+                'customer_id'     => $client->id,
+                'column_id'       => $column->id,
+            ];
+        })->toArray();
+
+        // Insertion en masse (une seule requête SQL → très performant)
+        DB::table('servex_customer_call_columns')->insert($dataToInsert);
+
+        // Optionnel : log ou message de confirmation
+        Log::info("Colonnes obligatoires activées pour le client {$client->id}", [
+            'columns_added' => $missingMandatoryColumns->pluck('id')->toArray()
+        ]);
+        $this->getColumns();
     }
 
     public function toggleColumn($columnId)

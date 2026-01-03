@@ -1,6 +1,5 @@
 <div>
     <div>
-        @dump($selectall, $columns)
         @if (!$isAllMandatoryColumnsActive && count($columns) > 0)
             <div class="alert alert-warning" role="alert">
                 <strong>Warning!</strong> Some mandatory columns are deactivated. Please activate all mandatory columns

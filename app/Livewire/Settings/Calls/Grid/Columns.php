@@ -54,17 +54,39 @@ class Columns extends Component
     public function handleAllTrigger()
     {
         $value = $this->selectall;
+        $client = $this->getCurrentTenant();
+
         if ($value) {
-            $this->enableAllMandatoryColumns();
+            // Récupérer les colonnes obligatoires qui ne sont PAS encore activées pour ce client
+            $columns = CallColumn::query()
+                ->where('display_in_grid', 1)
+                ->whereNotIn('id', function ($query) use ($client) {
+                    $query->select('column_id')
+                        ->from('servex_customer_call_columns')
+                        ->where('customer_id', $client->id);
+                })
+                ->get();
+
+            // Préparer les données à insérer dans la table pivot
+            $dataToInsert = $columns->map(function ($column) use ($client) {
+                return [
+                    'customer_id'     => $client->id,
+                    'column_id'       => $column->id,
+                ];
+            })->toArray();
+
+            // Insertion en masse (une seule requête SQL → très performant)
+            DB::table('servex_customer_call_columns')->insert($dataToInsert);
         } else {
-            // Désactiver toutes les colonnes obligatoires pour ce client
+            // Désactiver toutes les colonnes non obligatoires pour ce client
             $client = $this->getCurrentTenant();
             DB::table('servex_customer_call_columns')
                 ->where('customer_id', $client->id)
                 ->whereIn('column_id', function ($query) {
                     $query->select('id')
                         ->from('servex_call_columns')
-                        ->where('display_in_grid', 1);
+                        ->where('display_in_grid', 1)
+                        ->where('ismandatory', 0);
                 })
                 ->delete();
         }
@@ -184,6 +206,7 @@ class Columns extends Component
     public function mount()
     {
         $this->getColumns();
+        $this->enableAllMandatoryColumns();
     }
 
     public function render()

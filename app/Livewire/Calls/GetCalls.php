@@ -12,6 +12,7 @@ class GetCalls extends Component
     use UsesDomainTrait;
 
     public $isCallComplete = false;
+    public $calls = [];
 
     function GetCallsByStatus()
     {
@@ -63,9 +64,13 @@ class GetCalls extends Component
         return $newArray;
     }
 
+    public function mount()
+    {
+        $this->calls = $this->GetCallsByStatus();
+    }
+
     public function render()
     {
-        dd($this->GetCallsByStatus());
         return view('livewire.calls.get-calls');
     }
 }

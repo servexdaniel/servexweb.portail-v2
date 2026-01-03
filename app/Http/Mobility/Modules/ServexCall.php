@@ -1,6 +1,9 @@
 <?php
 namespace App\Http\Mobility\Modules;
+use DateTime;
 use Exception;
+use DateTimeZone;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use App\Servex\Traits\UsesDomainTrait;
@@ -10,6 +13,7 @@ use App\Http\Mobility\Interfaces\IServexAuth;
 
 class ServexCall
 {
+    use UsesDomainTrait;
     private ServexMobilityClient $servexMobilityClient;
     private $separator;
     private string $canumber;
@@ -55,14 +59,7 @@ class ServexCall
         $body_arr  = explode($this->separator, $response);
         array_pop($body_arr);
 
-        dd($response, $body_arr);
-        return [
-            'columns'      => $visibleFields,
-            'calls'        => array_combine($keys, $values),
-            'total'        => 1,
-        ];
 
-        /*
         $dataset          = [];
         if ($countFields > 0) {
             $dataset          = array_chunk($body_arr, $countFields, false);
@@ -100,13 +97,13 @@ class ServexCall
             }
 
 
-            $temp2 = array($temp);
+            /* $temp2 = array($temp);
             $temp2 = $this->ReplaceCaCodeByDescr($temp2);
             $temp2 = $this->ReplaceTravelByDescr($temp2);
             $temp2 = $this->ReplaceLabourByDescr($temp2);
             $temp2 = $this->ReplaceTechNumberByDescr($temp2);
             $temp2 = $this->ReplaceDispatcherNumberByDescr($temp2);
-            $temp = $temp2[0];
+            $temp = $temp2[0]; */
 
 
             array_push($calls, $temp);
@@ -132,6 +129,62 @@ class ServexCall
         ];
 
         return $data;
-        */
+    }
+
+    private function validateDate($date, $format = 'Ymd')
+    {
+        $d = DateTime::createFromFormat($format, $date);
+        return $d && $d->format($format) === $date;
+    }
+
+    private function convertColumnDate(?string $value): string
+    {
+        $value = $value == "19800101" ? "" : $value;
+        $value = $value == "01/01/1980" ? "" : $value;
+        $timezone = config('app.timezone');
+
+        if (empty($value)) {
+            return '';
+        }
+
+        try {
+            // Déterminer si la valeur contient une heure en testant les deux formats
+            $format = strpos($value, ':') === false ? 'd/m/Y' : 'd/m/Y H:i:s';
+
+            if ($this->validateDate($value, $format)) {
+                $date = DateTime::createFromFormat($format, $value);
+
+                if ($date === false || $date->getTimestamp() <= 315550800) { // 1970-01-01
+                    return '';
+                }
+
+                // Si le format est une date sans heure, définir l'heure à 00:00:00
+                if ($format === 'd/m/Y') {
+                    $date->setTime(0, 0, 0);
+                }
+
+                $date->setTimezone(new DateTimeZone($timezone));
+                return $date->format('Y-m-d H:i:s');
+            } else {
+                return '';
+            }
+        } catch (Exception) {
+            return '';
+        }
+    }
+
+    private function getCpaList()
+    {
+        $client = $this->getCurrentTenant();
+        $cpas = DB::table('servex_cpa')->where(['customer_id' => $client->id])->orderBy('CpTitle')->get('CpTitle');
+
+        $CPA_SUBMISSION = $client->getSetting('CPA_SUBMISSION');
+        $CPA_SUBMISSION_ACCEPTED = $client->getSetting('CPA_SUBMISSION_ACCEPTED');
+        $CPA_SUBMISSION_REJECTED = $client->getSetting('CPA_SUBMISSION_REJECTED');
+        if ($CPA_SUBMISSION != -1 && $CPA_SUBMISSION_ACCEPTED != -1 && $CPA_SUBMISSION_REJECTED != -1) {
+            $cpas = DB::table('servex_cpa')->where(['customer_id' => $client->id])
+                ->whereNotIn('CpNumber', [$CPA_SUBMISSION, $CPA_SUBMISSION_ACCEPTED, $CPA_SUBMISSION_REJECTED])->orderBy('CpTitle')->get('CpTitle');
+        }
+        return $cpas->toArray();
     }
 }

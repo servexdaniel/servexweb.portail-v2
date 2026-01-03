@@ -17,7 +17,7 @@
                     </strong>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-right account">
-                    <li><a href="page-profile.html"><i class="icon-user"></i>My Profile</a></li>
+                    <li><a href="{{ route('admin.profile') }}"><i class="icon-user"></i>My Profile</a></li>
                     <li><a href="app-inbox.html"><i class="icon-envelope-open"></i>Messages</a></li>
                     <li><a href="javascript:void(0);"><i class="icon-settings"></i>Settings</a></li>
                     <li class="divider"></li>
@@ -27,7 +27,7 @@
         </div>
         <nav id="left-sidebar-nav" class="sidebar-nav">
             <ul id="main-menu" class="metismenu">
-                <li><a href="index.html"><i class="icon-home"></i><span>Dashboard</span></a></li>
+                <li><a href="{{ route('admin.dashboard') }}"><i class="icon-home"></i><span>Dashboard</span></a></li>
                 <li>
                     <a href="#uiElements" class="has-arrow"><i class="icon-diamond"></i><span>Appels</span></a>
                     <ul>

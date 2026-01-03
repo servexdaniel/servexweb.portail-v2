@@ -17,7 +17,7 @@
                     </strong>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-right account">
-                    <li><a href="page-profile.html"><i class="icon-user"></i>My Profile</a></li>
+                    <li><a href="{{ route('contact.profile') }}"><i class="icon-user"></i>My Profile</a></li>
                     <li><a href="app-inbox.html"><i class="icon-envelope-open"></i>Messages</a></li>
                     <li><a href="javascript:void(0);"><i class="icon-settings"></i>Settings</a></li>
                     <li class="divider"></li>
@@ -27,7 +27,7 @@
         </div>
         <nav id="left-sidebar-nav" class="sidebar-nav">
             <ul id="main-menu" class="metismenu">
-                <li><a href="index.html"><i class="icon-home"></i><span>Dashboard</span></a></li>
+                <li><a href="{{ route('contact.dashboard') }}"><i class="icon-home"></i><span>Dashboard</span></a></li>
                 <li><a href="app-inbox.html"><i class="icon-envelope"></i><span>Inbox</span></a></li>
                 <li><a href="app-chat.html"><i class="icon-bubbles"></i><span>Chat</span></a></li>
                 <li>

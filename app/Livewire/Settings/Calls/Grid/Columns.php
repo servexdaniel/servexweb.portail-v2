@@ -13,7 +13,12 @@ class Columns extends Component
     use UsesDomainTrait;
 
     public $columns;
+    public $selectall = false;
     public $isAllMandatoryColumnsActive = false;
+
+    protected $listeners = [
+        'alltrigger' => 'handleAllTrigger',
+    ];
 
     public function getColumns()
     {
@@ -42,7 +47,36 @@ class Columns extends Component
             ->where('servex_call_columns.ismandatory', '<>', 1)
             ->orderBy('servex_call_columns.display_order', 'ASC')
             ->get()->toArray();
+        $this->selectAllBtnStatus();
         return $this->columns;
+    }
+
+    public function handleAllTrigger()
+    {
+        $value = $this->selectall;
+        if ($value) {
+            $this->enableAllMandatoryColumns();
+        } else {
+            // Désactiver toutes les colonnes obligatoires pour ce client
+            $client = $this->getCurrentTenant();
+            DB::table('servex_customer_call_columns')
+                ->where('customer_id', $client->id)
+                ->whereIn('column_id', function ($query) {
+                    $query->select('id')
+                        ->from('servex_call_columns')
+                        ->where('display_in_grid', 1);
+                })
+                ->delete();
+        }
+        $this->getColumns();
+    }
+
+    public function selectAllBtnStatus()
+    {
+        $visibleActiveColumns = collect($this->columns)->filter(function ($item) {
+            return $item->visible == true;
+        })->count();
+        $this->selectall = $visibleActiveColumns == count($this->columns);
     }
 
     public function enableAllMandatoryColumns()

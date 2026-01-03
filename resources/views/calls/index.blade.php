@@ -1,7 +1,5 @@
 @extends('layouts.v1.app')
 
 @section('content')
-    <div class="py-2">
-        Calls index page.
-    </div>
+    <livewire:calls.get-calls />
 @endsection

@@ -12,4 +12,5 @@ class CustomerCallColumn extends Model
         'customer_id',
         'column_id',
     ];
+
 }

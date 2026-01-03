@@ -4,6 +4,7 @@ namespace App\Http\Mobility\Commands;
 use DateTimeZone;
 use Stomp\Transport\Message;
 
+use Illuminate\Support\Facades\Auth;
 use App\Http\Mobility\Interfaces\IServexCommand;
 use App\Http\Mobility\Commands\ServexCommandHeader;
 
@@ -12,7 +13,7 @@ class SrCalls implements IServexCommand
     public function getParams($messageUIID, array $criteria = []): ServexCommandHeader
     {
         $command    = "coGetRecordsSQL";
-        $CuNumber = getCuNumber();
+        $CuNumber = Auth::guard('contact')->user()->CuNumber;
         $whereQuery = $CuNumber;
         $isCallComplete   =  (array_key_exists("isCallComplete", $criteria)) ? $criteria['isCallComplete'] : 0;
         $fields   =  (array_key_exists("fields", $criteria)) ? $criteria['fields'] : '';
@@ -21,6 +22,7 @@ class SrCalls implements IServexCommand
         } else {
             $searchType = "srCallCompleteCustomerWEB";
 
+            /*
             $fromdate = getHistoryFromDate();
             $fromdate = $fromdate['date'];
             $new_format_fromdate = date("d/m/Y", strtotime($fromdate));
@@ -34,6 +36,7 @@ class SrCalls implements IServexCommand
             if (!is_null($fromdate) && $fromdate < $yesterday) {
                 $whereQuery = $CuNumber . "|" . $new_format_fromdate;
             }
+            */
         }
 
         //Frame à envoyer via rabbitmq

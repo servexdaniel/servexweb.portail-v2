@@ -8,7 +8,7 @@ use App\Http\Mobility\Commands\SrCalls;
 use App\Http\Mobility\ServexMobilityClient;
 use App\Http\Mobility\Interfaces\IServexAuth;
 
-class ServexCall implements IServexAuth
+class ServexCall
 {
     private ServexMobilityClient $servexMobilityClient;
     private $separator;
@@ -55,7 +55,7 @@ class ServexCall implements IServexAuth
         $body_arr  = explode($this->separator, $response);
         array_pop($body_arr);
 
-        dd($body_arr);
+        dd($response, $body_arr);
         return [
             'columns'      => $visibleFields,
             'calls'        => array_combine($keys, $values),

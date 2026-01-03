@@ -2,11 +2,12 @@
 
 namespace App\Models;
 
-use Spatie\Multitenancy\Models\Tenant;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use App\Servex\Traits\UsesTenantSettingsTrait;
 use App\Models\Label;
 use App\Models\Setting;
+use App\Models\CallColumn;
+use Spatie\Multitenancy\Models\Tenant;
+use App\Servex\Traits\UsesTenantSettingsTrait;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Customer extends Tenant
 {
@@ -29,6 +30,18 @@ class Customer extends Tenant
     public function settings()
     {
         return $this->hasMany(Setting::class,'customer_id');
+    }
+
+    public function callColumns()
+    {
+        return $this->belongsToMany(
+            CallColumn::class,                    // Modèle lié (la colonne d’appel)
+            'servex_customer_call_columns',       // Nom de la table pivot
+            'customer_id',                        // Clé étrangère dans le pivot qui pointe vers LE MODÈLE PROPRIÉTAIRE (ce modèle-ci, ex. Client)
+            'column_id'                           // Clé étrangère dans le pivot qui pointe vers le modèle lié (CallColumn)
+        )
+        ->withPivot('id')                         // Optionnel : récupère aussi la colonne 'id' du pivot
+        ->withTimestamps();
     }
 
     public function menuLabels()

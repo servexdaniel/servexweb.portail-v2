@@ -38,6 +38,7 @@ class HomeController extends Controller
 
     public function profile()
     {
+        Log::channel('audit')->info('Admin visits profile.');
         return view('admin.profile');
     }
 }

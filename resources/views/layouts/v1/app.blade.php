@@ -71,7 +71,12 @@
                                             </strong>
                                         </a>
                                         <ul class="dropdown-menu dropdown-menu-right account">
-                                            <li><a href={{ route('contact.profile') }}>My Profile</a></li>
+                                            <li>
+                                                <a
+                                                    href="{{ $isManager ? route('admin.profile') : route('contact.profile') }}">
+                                                    My Profile
+                                                </a>
+                                            </li>
                                             <li><a href="javascript:void(0);" class="right_toggle">Settings</a></li>
                                             <li>
                                                 <form method="POST" action="{{ route('contact.logout') }}">

@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Contact\HomeController;
 use App\Http\Controllers\Servex\ContactController;
+use App\Http\Controllers\Call\GetCallsCallController;
 
 Route::middleware(['guest:contact', 'PreventBackHistory'])->group(function () {
     Route::get('forget-password', [ContactController::class, 'showForgetPasswordForm'])->name('password.request');
@@ -27,4 +28,8 @@ Route::middleware(['auth:contact', 'PreventBackHistory'])->group(function () {
 });
 
 Route::post('/select-company', [ContactController::class, 'selectCompany'])->name('select-company');
+
+Route::middleware(['auth:contact', 'PreventBackHistory'])->group(function () {
+    Route::get('/calls', [GetCallsCallController::class, 'index'])->name('calls');
+});
 

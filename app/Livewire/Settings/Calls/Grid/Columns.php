@@ -80,6 +80,45 @@ class Columns extends Component
         Log::info("Colonnes obligatoires activées pour le client {$client->id}", [
             'columns_added' => $missingMandatoryColumns->pluck('id')->toArray()
         ]);
+        $this->enableAllDefaultColumns();
+        $this->getColumns();
+    }
+
+    public function enableAllDefaultColumns()
+    {
+        $client = $this->getCurrentTenant();
+
+        // Récupérer les colonnes par défaut qui ne sont PAS encore activées pour ce client
+        $missingDefaultColumns = CallColumn::query()
+            ->where('isdefault', 1)
+            ->where('display_in_grid', 1)
+            ->whereNotIn('id', function ($query) use ($client) {
+                $query->select('column_id')
+                    ->from('servex_customer_call_columns')
+                    ->where('customer_id', $client->id);
+            })
+            ->get();
+
+        // Si aucune colonne ne manque → rien à faire
+        if ($missingDefaultColumns->isEmpty()) {
+            return;
+        }
+
+        // Préparer les données à insérer dans la table pivot
+        $dataToInsert = $missingDefaultColumns->map(function ($column) use ($client) {
+            return [
+                'customer_id'     => $client->id,
+                'column_id'       => $column->id,
+            ];
+        })->toArray();
+
+        // Insertion en masse (une seule requête SQL → très performant)
+        DB::table('servex_customer_call_columns')->insert($dataToInsert);
+
+        // Optionnel : log ou message de confirmation
+        Log::info("Colonnes par défaut activées pour le client {$client->id}", [
+            'columns_added' => $missingDefaultColumns->pluck('id')->toArray()
+        ]);
         $this->getColumns();
     }
 

@@ -33,7 +33,7 @@ class GetCalls extends Component
     private function getCallGridVisibleFields()
     {
         $client = $this->getCurrentTenant();
-        $visibleColumns = $client->callColumns->sortBy('display_order')->sortBy('id');
+        $visibleColumns = $client->callColumns->sortBy('display_order');
 
         //Exclure CaInvoiceNumber pour les appels en cours
         $filtered = $visibleColumns->filter(function ($value, $key) {

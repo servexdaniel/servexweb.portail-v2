@@ -505,6 +505,8 @@
                     // Note: All td must have the same class name as the headings key!
                     let columns = document.querySelectorAll('.' + key);
 
+                    alert(JSON.stringify(columns));
+                    /*
                     if (this.$refs[key].classList.contains('hidden') && this.$refs[key].classList.contains(key)) {
                         columns.forEach(column => {
                             column.classList.remove('hidden');
@@ -514,6 +516,7 @@
                             column.classList.add('hidden');
                         });
                     }
+                    */
                 },
 
                 changeCpaFilter() {

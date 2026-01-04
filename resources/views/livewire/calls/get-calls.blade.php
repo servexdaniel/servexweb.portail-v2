@@ -14,6 +14,8 @@
             class="mb-6 bg-white dark:bg-darker rounded-lg shadow-sm border border-gray-200 dark:border-primary-darker p-4">
             <div class="flex flex-wrap items-center gap-4">
 
+                <pre x-html="JSON.stringify(items)"></pre>
+
                 <!-- Bouton Nouveau appel -->
                 <button onclick="openCall()" class="flex items-center gap-2">
                     @slot('svg')
@@ -117,7 +119,10 @@
                                 class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-light uppercase tracking-wider">
                                 Photos</th>
                             <template x-for="heading in headings" :key="heading.name">
-                                <th :class="heading.name"
+                                <th :x-ref="heading.name"
+                                    :class="{
+                                        [heading.name]: true
+                                    }"
                                     class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-light uppercase tracking-wider">
                                     <div class="flex items-center justify-between">
                                         <span x-text="heading.title"></span>
@@ -153,7 +158,12 @@
                                         class="text-blue-600 underline cursor-pointer hover:text-blue-800">Photos</span>
                                 </td>
                                 <template x-for="col in columns">
-                                    <td :class="col.name" class="px-4 py-3 text-sm">
+                                    {{-- <td :class="col.name" class="px-4 py-3 text-sm"> --}}
+                                    <td x-bind:class="{
+                                        'td-texte-long': col.name === 'CaProblem',
+                                        [col.name]: true
+                                    }"
+                                        class="align-middle">
                                         <template x-if="col.name === 'CpTitle'">
                                             <span class="px-3 py-1 rounded-full text-xs font-medium"
                                                 :style="backgroundcolor(item)"
@@ -257,8 +267,245 @@
                     this.isEmptyDataSet = this.pagination.total > 0 ? false : true;
                     this.showPages();
                 },
-                // ... (le reste de vos méthodes : build, sort, search, changePage, toggleColumn, etc.)
-                // Tout est conservé fonctionnellement.
+                compareOnKey(key, rule) {
+                    return function(a, b) {
+                        //if (key === 'name' || key === 'job' || key === 'email' || key === 'country') {
+                        let comparison = 0
+                        const fieldA = a[key].toUpperCase()
+                        const fieldB = b[key].toUpperCase()
+                        if (rule === 'asc') {
+                            if (fieldA > fieldB) {
+                                comparison = 1;
+                            } else if (fieldA < fieldB) {
+                                comparison = -1;
+                            }
+                        } else {
+                            if (fieldA < fieldB) {
+                                comparison = 1;
+                            } else if (fieldA > fieldB) {
+                                comparison = -1;
+                            }
+                        }
+                        return comparison
+                        /*} else {
+                            if (rule === 'asc') {
+                                return a.year - b.year
+                            } else {
+                                return b.year - a.year
+                            }
+                        }*/
+                    }
+                },
+                checkView(index) {
+                    return index > this.pagination.to || index < this.pagination.from ? false : true
+                },
+                checkPage(item) {
+                    if (item <= this.currentPage + 5) {
+                        return true
+                    }
+                    return false
+                },
+                search(value) {
+                    if (value.length > 1) {
+                        const options = {
+                            shouldSort: true,
+                            keys: this.cols,
+                            threshold: 0.2
+                        }
+                        const fuse = new Fuse(this.calls, options)
+                        this.items = fuse.search(value).map(elem => elem.item)
+                    } else {
+                        this.items = this.calls
+                    }
+
+                    this.changePage(1)
+                    this.showPages()
+                },
+                sort(field, rule) {
+                    this.items = this.items.sort(this.compareOnKey(field, rule))
+                    this.sorted.field = field
+                    this.sorted.rule = rule
+                },
+                changePage(page) {
+                    if (page >= 1 && page <= this.pagination.lastPage) {
+                        this.currentPage = page
+                        const total = this.items.length
+                        const lastPage = Math.ceil(total / this.view) || 1
+                        const from = (page - 1) * this.view + 1
+                        let to = page * this.view
+                        if (page === lastPage) {
+                            to = total
+                        }
+                        this.pagination.total = total
+                        this.pagination.lastPage = lastPage
+                        this.pagination.perPage = this.view
+                        this.pagination.currentPage = page
+                        this.pagination.from = from
+                        this.pagination.to = to
+                        this.showPages()
+                    }
+                },
+                showPages() {
+                    const pages = []
+                    let from = this.pagination.currentPage - Math.ceil(this.offset / 2)
+                    if (from < 1) {
+                        from = 1
+                    }
+                    let to = from + this.offset - 1
+                    if (to > this.pagination.lastPage) {
+                        to = this.pagination.lastPage
+                    }
+                    while (from <= to) {
+                        pages.push(from)
+                        from++
+                    }
+                    this.pages = pages
+                },
+                changeView() {
+                    this.changePage(1)
+                    this.showPages()
+                },
+                isEmpty() {
+                    return this.pagination.total ? false : true
+                },
+                countHeadings() {
+                    return this.headings.length;
+                },
+                hidePagination() {
+                    return this.pagination.lastPage <= 1 ? false : true
+                },
+                checkEmptyDataSet() {
+                    return this.isEmptyDataSet;
+                },
+                startEdit(CaNumber) {
+                    Livewire.emitTo('modal.call.edit-call', 'editCallModal', CaNumber, false);
+                },
+                showImages(CaNumber) {
+                    Livewire.emitTo('modal.call.images', 'showCallImagesModal', CaNumber);
+                },
+                getColumnData(call, column) {
+                    data = call[column.name];
+                    return data;
+                },
+                truncate(call, column, max) {
+                    const text = call[column.name].toString().trim();
+                    return text.substr(0, max - 1) + (text.length > max ? ' ...' : '');
+                },
+                backgroundcolor(item) {
+                    const colors = item.CPColor.split("þ");
+                    const bgColor = colors[0];
+                    const textColor = colors[1];
+                    return 'background-color:' + bgColor + '; color:' + textColor + '; opacity: 0.75;';
+                },
+
+                toggleColumn(key) {
+                    // Note: All td must have the same class name as the headings key!
+                    let columns = document.querySelectorAll('.' + key);
+
+                    if (this.$refs[key].classList.contains('hidden') && this.$refs[key].classList.contains(key)) {
+                        columns.forEach(column => {
+                            column.classList.remove('hidden');
+                        });
+                    } else {
+                        columns.forEach(column => {
+                            column.classList.add('hidden');
+                        });
+                    }
+                },
+
+                changeCpaFilter() {
+                    cpaFilter = this.currentCpaFilter;
+                    if (cpaFilter != '') {
+                        const options = {
+                            shouldSort: true,
+                            keys: ['CpTitle'],
+                            threshold: 0.2
+                        }
+                        const fuse = new Fuse(this.calls, options)
+                        this.items = fuse.search(cpaFilter).map(elem => elem.item)
+                    } else {
+                        this.items = this.calls;
+                    }
+                    this.changePage(1)
+                    this.showPages()
+                },
+
+                changeFilter() {
+                    $(".loader").fadeIn("slow");
+                    let fromdate = "";
+                    let todate = "";
+
+                    switch (this.currentFilter) {
+                        case "today":
+                            today = new Date();
+                            month = today.getMonth();
+                            year = today.getFullYear();
+
+                            fromdate = new Date(today).setHours(0, 0, 0, 0);
+                            todate = new Date(today).setHours(23, 59, 59, 0);
+
+                            break;
+                        case "Current week":
+                            today = new Date();
+
+                            fromdate = new Date(today);
+                            fromdate.setDate(fromdate.getDate() - fromdate.getDay() + 0);
+
+                            todate = new Date(today);
+                            todate.setDate(todate.getDate() - todate.getDay() + 6);
+
+                            fromdate = fromdate.setHours(0, 0, 0, 0)
+                            todate = todate.setHours(23, 59, 59, 0);
+
+                            break;
+                        case "Past 7 days":
+                            today = new Date();
+                            let lastWeek = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 8);
+                            let lastWeekMonth = lastWeek.getMonth();
+                            let lastWeekDay = lastWeek.getDate();
+                            let lastWeekYear = lastWeek.getFullYear();
+
+                            fromdate = new Date(lastWeekYear, lastWeekMonth, lastWeek.getDate()).valueOf();
+                            todate = new Date().setHours(23, 59, 59, 0);
+
+                            break;
+                        case "This Month":
+                            today = new Date();
+                            fromdate = new Date(today.getFullYear(), today.getMonth(), 1).setHours(0, 0, 0, 0);
+                            todate = new Date(today.getFullYear(), today.getMonth() + 1, 0).setHours(23, 59, 59, 0);
+
+                            break;
+                        case "This year":
+                            today = new Date();
+
+                            fromdate = new Date(today.getFullYear(), 0, 1).setHours(0, 0, 0, 0);
+                            todate = new Date(today.getFullYear(), 12, 0).setHours(23, 59, 59, 0);
+
+                            break;
+                        default:
+
+                            break;
+                    }
+
+                    this.search(this.searchInput);
+
+                    if (fromdate != '' && todate != '') {
+                        list = this.items.filter(function(e) {
+                            let cDate = new Date(e.CaCallDate).valueOf();
+                            if ((cDate <= todate && cDate >= fromdate)) {
+                                return e
+                            }
+                        });
+
+                    } else {
+                        list = this.items
+                    }
+
+                    this.items = list
+                    this.changeView();
+                    $(".loader").fadeOut("slow");
+
+                },
             }
         }
     </script>
@@ -273,6 +520,85 @@
 
         [x-cloak] {
             display: none !important;
+        }
+    </style>
+
+
+    <style scoped>
+        .default-width {
+            min-width: 150px;
+            min-width: 150px !important;
+            max-width: 150px !important;
+            /* Largeur par défaut pour toutes les colonnes */
+            vertical-align: middle;
+        }
+
+        .CaNumber {
+            width: 100px !important;
+            min-width: 100px !important;
+            max-width: 100px !important;
+        }
+
+        .CpTitle {
+            width: 260px !important;
+            min-width: 260px !important;
+            max-width: 260px !important;
+        }
+
+        .CaCallDate {
+            width: 150px !important;
+            min-width: 150px !important;
+            max-width: 150px !important;
+        }
+
+        .CaContractNumber {
+            width: 100px !important;
+            min-width: 100px !important;
+            max-width: 100px !important;
+        }
+
+        /* Classe à appliquer uniquement aux cellules avec du texte long */
+        td.td-texte-long {
+            width: auto !important;
+            min-width: 400px !important;
+
+            /* Gestion du retour à la ligne */
+            word-break: break-word;
+            /* Cassage des mots longs (compatibilité ancienne) */
+            overflow-wrap: break-word;
+            /* Standard moderne – équivalent à word-break: break-word */
+            word-wrap: break-word;
+            /* Ancienne propriété pour IE */
+
+            /* Sécurité absolue contre le débordement horizontal */
+            overflow: hidden;
+            /* Cache tout contenu qui dépasserait */
+            text-overflow: ellipsis;
+            /* Optionnel : ajoute "..." si le texte déborde (utile avec truncate) */
+
+            white-space: normal;
+            /* Autorise le retour à la ligne (par défaut, mais utile à préciser) */
+
+            vertical-align: top;
+            padding: 12px !important;
+            /*font-size: 0.875rem;*/
+            line-height: 1.6;
+        }
+
+        td.td-texte-long pre {
+            white-space: pre-wrap;
+            /* Préserve les espaces et retours à la ligne, mais autorise le wrap */
+            word-break: break-word;
+            /* Cassage des mots très longs */
+            overflow-wrap: anywhere;
+            /* Cassage agressif si nécessaire */
+            overflow: hidden;
+            /* Sécurité absolue contre le débordement */
+            margin: 0;
+            /* Évite les marges par défaut de <pre> */
+            font-family: inherit;
+            /* Utilise la police du tableau (souvent plus lisible) */
+            font-size: inherit;
         }
     </style>
 </div>

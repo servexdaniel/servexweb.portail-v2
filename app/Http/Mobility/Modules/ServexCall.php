@@ -6,6 +6,7 @@ use DateTimeZone;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use App\Servex\Traits\UsesColorsTrait;
 use App\Servex\Traits\UsesDomainTrait;
 use App\Http\Mobility\Commands\SrCalls;
 use App\Http\Mobility\ServexMobilityClient;
@@ -13,7 +14,7 @@ use App\Http\Mobility\Interfaces\IServexAuth;
 
 class ServexCall
 {
-    use UsesDomainTrait;
+    use UsesDomainTrait, UsesColorsTrait;
     private ServexMobilityClient $servexMobilityClient;
     private $separator;
     private string $canumber;

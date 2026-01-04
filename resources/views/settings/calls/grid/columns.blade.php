@@ -32,7 +32,7 @@
                         </div>
                         <!-- Panel header -->
                         <div
-                            class="flex-shrink-0 bg-primary-50 dark:bg-primary-light           border-b dark:border-primary dark:text-light dark:bg-dark">
+                            class="flex-shrink-0 bg-primary-50 dark:bg-primary-light border-b dark:border-primary dark:text-light dark:bg-dark">
                             <div class="flex items-center justify-between px-4 pt-2 ">
                                 <div class="space-x-2 text-gray-700 lg:text-base md:text-base sm:text-xs font-medium">
                                     <button @click.prevent="activeTabe = '1'"
@@ -65,6 +65,7 @@
                             <div class="space-y-4 dark:text-light dark:bg-darker" x-show.transition.in="activeTabe == '1'">
                                 <div class="px-3 py-2 ml-2 mr-2">
                                     livewire:config.call-form-visualisation
+                                    <livewire:settings.calls.form.visualisation.columns />
                                 </div>
                             </div>
 

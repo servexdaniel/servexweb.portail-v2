@@ -31,7 +31,7 @@ class CallController extends Controller
 
     public function callSettings()
     {
-        Log::channel('audit')->info('Admin visits profile.');
+        Log::channel('audit')->info('Admin visits settings.calls.grid.columns.');
         return view('settings.calls.grid.columns');
     }
 }

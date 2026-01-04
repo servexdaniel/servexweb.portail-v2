@@ -28,7 +28,7 @@
         <nav id="left-sidebar-nav" class="sidebar-nav">
             <ul id="main-menu" class="metismenu">
                 <li><a href="{{ route('contact.dashboard') }}"><i class="icon-home"></i><span>Dashboard</span></a></li>
-                <li><a href="app-inbox.html"><i class="icon-envelope"></i><span>Inbox</span></a></li>
+                <li><a href="{{ route('contact.calls') }}"><i class="icon-envelope"></i><span>Calls</span></a></li>
                 <li><a href="app-chat.html"><i class="icon-bubbles"></i><span>Chat</span></a></li>
                 <li>
                     <a href="#uiElements" class="has-arrow"><i class="icon-diamond"></i><span>UI

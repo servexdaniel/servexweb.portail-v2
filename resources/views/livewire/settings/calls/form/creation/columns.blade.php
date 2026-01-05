@@ -1,5 +1,4 @@
 <div>
-    @dump($isAllMandatoryColumnsActive, $columns);
     <div>
         @if (!$isAllMandatoryColumnsActive && count($columns) >= 0)
             <div class="alert alert-warning" role="alert">

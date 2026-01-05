@@ -40,6 +40,7 @@ class Columns extends Component
                         DB::raw("(  SELECT CASE WHEN servex_customer_call_visualisation_columns.column_id = servex_call_detail_columns.id THEN TRUE ELSE FALSE END
                                     FROM servex_customer_call_visualisation_columns
                                     WHERE servex_customer_call_visualisation_columns.customer_id = ".$client->id ."
+                                    AND servex_call_detail_columns.display_in_visualisation = 1
                                     AND servex_customer_call_visualisation_columns.column_id = servex_call_detail_columns.id) AS visible
                         "),
                     )

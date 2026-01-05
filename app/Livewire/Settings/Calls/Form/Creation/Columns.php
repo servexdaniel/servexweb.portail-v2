@@ -150,7 +150,7 @@ class Columns extends Component
             ->where('display_in_creation', 1)
             ->whereNotIn('id', function ($query) use ($client) {
                 $query->select('column_id')
-                    ->from(' servex_customer_call_creation_columns')
+                    ->from('servex_customer_call_creation_columns')
                     ->where('customer_id', $client->id);
             })
             ->get();

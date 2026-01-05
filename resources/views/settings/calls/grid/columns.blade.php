@@ -64,7 +64,6 @@
                             <!-- Visualisation tab -->
                             <div class="space-y-4 dark:text-light dark:bg-darker" x-show.transition.in="activeTabe == '1'">
                                 <div class="px-3 py-2 ml-2 mr-2">
-                                    livewire:config.call-form-visualisation
                                     <livewire:settings.calls.form.visualisation.columns />
                                 </div>
                             </div>
@@ -73,7 +72,7 @@
                             <!-- Création tab -->
                             <div class="space-y-4 dark:text-light dark:bg-darker" x-show.transition.in="activeTabe == '2'">
                                 <div class="px-3 py-2 ml-2 mr-2">
-                                    livewire:config.call-form-creation
+                                    <livewire:settings.calls.form.creation.columns />
                                 </div>
                             </div>
                         </div>

@@ -37,6 +37,10 @@
                     </button>
                 </div>
             </div>
+        @else
+            <div class="text-center p-4">
+                <p class="text-gray-600">No columns available.</p>
+            </div>
         @endif
         <div class="space-y-2 w-full overflow-auto h-96">
             @foreach ($columns as $column)
